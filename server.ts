@@ -737,15 +737,12 @@ function createSampleFileWithExpiry(
   };
 }
 
-// Sample images (PNG and JPG)
+// Sample image for pre-seeded image notes
 const foxPngPath = path.join(process.cwd(), "fox-idle.png");
-const sampleJpgPath = path.join(process.cwd(), "public", "datacenter_topology.jpg");
 const samplePngBuffer = fs.existsSync(foxPngPath)
   ? fs.readFileSync(foxPngPath)
   : Buffer.from("PNG_IMAGE_SAMPLE");
-const sampleJpgBuffer = fs.existsSync(sampleJpgPath)
-  ? fs.readFileSync(sampleJpgPath)
-  : Buffer.from("JPG_IMAGE_SAMPLE");
+const sampleJpgBuffer = samplePngBuffer;
 
 // Rich academic study note contents for pre-seeded documents
 const STUDY_NOTE_CS301 = `====================================================================

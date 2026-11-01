@@ -23,7 +23,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.ts ./server.ts
 COPY --from=builder /app/fox-idle.png ./fox-idle.png
-COPY --from=builder /app/public ./public
 
 # Ensure upload directory exists
 RUN mkdir -p /app/EncryptedUploads
