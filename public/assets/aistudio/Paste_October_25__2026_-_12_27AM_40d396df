@@ -1,0 +1,742 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>SchoolVault — Campus Study Hub &amp; Note Repository</title>
+<!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS with Forms and Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config verbatim from design system -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary-container": "#3559e0",
+            "secondary-container": "#86f2e4",
+            "surface-container-high": "#e2e8fc",
+            "secondary-fixed": "#89f5e7",
+            "surface": "#faf8ff",
+            "background": "#faf8ff",
+            "surface-dim": "#d4d9ee",
+            "on-primary-fixed-variant": "#0036bc",
+            "inverse-on-surface": "#edf0ff",
+            "on-secondary-fixed": "#00201d",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#2a3040",
+            "tertiary-container": "#905a00",
+            "tertiary-fixed": "#ffddb8",
+            "surface-container": "#e9edff",
+            "on-secondary-container": "#006f66",
+            "on-tertiary": "#ffffff",
+            "surface-bright": "#faf8ff",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "secondary-fixed-dim": "#6bd8cb",
+            "surface-variant": "#dde2f7",
+            "on-tertiary-container": "#ffdfbe",
+            "tertiary": "#6f4500",
+            "on-background": "#151b2a",
+            "on-tertiary-fixed": "#2a1700",
+            "outline": "#747686",
+            "on-secondary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "outline-variant": "#c4c5d7",
+            "surface-container-low": "#f2f3ff",
+            "on-surface": "#151b2a",
+            "on-secondary-fixed-variant": "#005049",
+            "on-primary-container": "#e0e3ff",
+            "surface-container-highest": "#dde2f7",
+            "inverse-primary": "#b8c3ff",
+            "secondary": "#006a61",
+            "on-surface-variant": "#444654",
+            "primary-fixed-dim": "#b8c3ff",
+            "on-primary-fixed": "#001355",
+            "primary-fixed": "#dde1ff",
+            "on-error-container": "#93000a",
+            "on-error": "#ffffff",
+            "tertiary-fixed-dim": "#ffb95f",
+            "surface-tint": "#2b50d8",
+            "on-tertiary-fixed-variant": "#653e00",
+            "primary": "#0e3ec7"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter": "1.25rem",
+            "margin": "2rem",
+            "space-lg": "1.5rem",
+            "margin-mobile": "1rem",
+            "space-xl": "2.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "gutter-mobile": "0.75rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "title": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-md": ["Space Grotesk"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "label-sm": ["Space Grotesk"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "display": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "title": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "display": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Dot-grid classroom pinboard background */
+    .classroom-dots {
+      background-color: #faf8ff;
+      background-image: radial-gradient(#c4c5d7 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    
+    /* Tactile frosted tape strip */
+    .washi-tape {
+      width: 56px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(2px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      border-left: 2px dashed rgba(180, 185, 205, 0.5);
+      border-right: 2px dashed rgba(180, 185, 205, 0.5);
+    }
+
+    /* Subtle paper card shadow */
+    .sticky-shadow {
+      box-shadow: 0 4px 16px -2px rgba(21, 27, 42, 0.08), 0 2px 6px -1px rgba(21, 27, 42, 0.04);
+    }
+    .sticky-shadow-hover:hover {
+      box-shadow: 0 14px 28px -6px rgba(21, 27, 42, 0.12), 0 6px 12px -3px rgba(21, 27, 42, 0.06);
+    }
+
+    /* Subtle tilts with spring reset on hover */
+    .tilt-left { transform: rotate(-0.9deg); transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease; }
+    .tilt-right { transform: rotate(1.1deg); transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease; }
+    .tilt-slight-left { transform: rotate(-0.5deg); transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease; }
+    .tilt-slight-right { transform: rotate(0.8deg); transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease; }
+    
+    .tilt-left:hover, .tilt-right:hover, .tilt-slight-left:hover, .tilt-slight-right:hover {
+      transform: rotate(0deg) translateY(-4px);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col classroom-dots">
+<!-- ================= TOP NAV BAR (Shared Component Anchor) ================= -->
+<header class="w-full px-4 md:px-8 py-3 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md bg-surface-container-lowest/90 border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-8">
+<!-- Brand Logo -->
+<a class="text-headline-sm font-headline-sm font-bold text-primary flex items-center gap-2 group transition-transform duration-200 active:scale-95" href="#">
+<div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">verified_user</span>
+</div>
+<span class="tracking-tight text-primary">Vault</span>
+</a>
+<!-- Search Bar (on_left configuration) -->
+</div>
+<!-- Right Actions Cluster -->
+<div class="flex items-center gap-3">
+<!-- Icon Actions -->
+<button class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" title="Help &amp; Documentation">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+<div class="h-5 w-[1px] bg-outline-variant/50 mx-1 hidden sm:block"></div>
+<!-- Trailing Primary Action: Upload -->
+<button class="bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm hover:shadow transition-all duration-150 active:scale-95" onclick="document.getElementById('uploadModal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+<span class="">Upload</span>
+</button>
+<!-- Trailing Secondary Action: Sign In -->
+<button class="border border-outline-variant hover:bg-surface-container text-on-surface font-label-md text-label-md px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors duration-150">
+<span class="material-symbols-outlined text-[18px]">login</span>
+<span class="">Sign In</span>
+</button>
+</div>
+</header>
+<!-- ================= SUB-HEADER & QUICK CONTROLS ================= -->
+<section class="max-w-7xl w-full mx-auto px-4 md:px-8 pt-8 pb-4">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<!-- Title & Live Counter -->
+<div class="flex items-baseline gap-3">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight flex items-center gap-2">
+          Repository
+        </h1>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md border border-outline-variant/30">10 study files</span>
+</div>
+<!-- Controls: Dept Filter & View Toggles -->
+<div class="flex items-center gap-2 flex-wrap">
+<!-- Dept / Subject Switcher -->
+<div class="relative flex items-center w-64 md:w-80 mr-1"><span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span><input class="w-full pl-9 pr-14 py-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary shadow-xs transition-all" placeholder="Search notes, tags, files..." type="text"><kbd class="absolute right-2 px-1.5 py-0.5 text-[10px] font-label-sm font-bold bg-surface-container text-on-surface-variant rounded border border-outline-variant/40 shadow-xs">⌘K</kbd></div><div class="relative inline-flex items-center">
+<label class="text-label-sm font-label-sm text-outline mr-2 hidden sm:inline" for="deptSelect">Dept:</label>
+<div class="relative">
+<select class="bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-body-sm text-on-surface pl-3 pr-8 py-1.5 appearance-none focus:outline-none focus:ring-2 focus:ring-primary shadow-xs cursor-pointer" id="deptSelect">
+<option selected="">All subjects &amp; files</option>
+<option>Faculty of Sciences (STEM)</option>
+<option>Humanities &amp; Literature</option>
+<option>Computer Science &amp; Code</option>
+<option>Finance &amp; Economics</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-2 top-2 text-outline text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- View Switcher -->
+<div class="flex items-center p-0.5 bg-surface-container rounded-lg border border-outline-variant/40 ml-1">
+<button class="p-1.5 rounded-md bg-surface-container-lowest text-primary shadow-xs" title="Sticky Note Board View">
+<span class="material-symbols-outlined text-[18px] block">grid_view</span>
+</button>
+<button class="p-1.5 rounded-md text-on-surface-variant hover:text-on-surface" title="List View">
+<span class="material-symbols-outlined text-[18px] block">view_list</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Tags & Filter Strip -->
+<div class="mt-5 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+<div class="flex items-center text-outline gap-1 mr-1 flex-shrink-0">
+<span class="material-symbols-outlined text-[16px]">sell</span>
+<span class="font-label-sm text-label-sm">Tags:</span>
+</div>
+<!-- Subject Filter Pills -->
+<button class="px-3.5 py-1 rounded-full font-label-sm text-label-sm bg-primary text-on-primary shadow-xs transition-transform active:scale-95 flex-shrink-0">
+        All
+      </button>
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant transition-colors flex-shrink-0">
+        #Finance
+      </button>
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant transition-colors flex-shrink-0">
+        #Confidential
+      </button>
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant transition-colors flex-shrink-0">
+        #Internal
+      </button>
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant transition-colors flex-shrink-0">
+        #Engineering
+      </button>
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant transition-colors flex-shrink-0">
+        #Project
+      </button>
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant transition-colors flex-shrink-0">
+        #Operations
+      </button>
+<span class="w-[1px] h-4 bg-outline-variant/50 mx-1 flex-shrink-0"></span>
+<!-- Protection Status Filters -->
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/40 text-on-surface-variant flex items-center gap-1 flex-shrink-0">
+<span class="material-symbols-outlined text-[13px] text-error">lock</span> 6-Char PIN Protected
+      </button>
+<button class="px-3 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/40 text-on-surface-variant flex items-center gap-1 flex-shrink-0">
+<span class="material-symbols-outlined text-[13px] text-tertiary">bolt</span> Open Access
+      </button>
+</div>
+</section>
+<!-- ================= STUDY MATERIAL BOARD (TACTILE STICKY GRID) ================= -->
+<main class="max-w-7xl w-full mx-auto px-4 md:px-8 py-6 flex-1">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"><!-- 1. DOCX: Classic Blue Sticky Note -->
+<div class="relative tilt-left sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#93c5fd] bg-[#eff6ff] text-[#1e3a8a] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-blue-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#dbeafe] text-[#1d4ed8] border border-[#93c5fd] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">description</span> DOCX
+      </span>
+<button class="text-[#1e40af] hover:text-[#1e3a8a] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-error flex-shrink-0 mt-0.5" title="PIN Protected">lock</span>
+<h3 class="font-title text-title text-[#1e3a8a] font-bold leading-snug line-clamp-2">
+        CS301_Algorithm_Notes.docx
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#2563eb] mb-3">
+      3.8 MB • Prof. Harrison
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#dbeafe] text-[#1d4ed8] border border-[#bfdbfe]">#ComputerScience</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#dbeafe] text-[#1d4ed8] border border-[#bfdbfe]">#Lecture</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#bfdbfe]">
+<span class="text-[10px] font-label-sm text-[#1d4ed8] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> 6-Char PIN
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#dbeafe] hover:bg-[#bfdbfe] text-[#1d4ed8] flex items-center justify-center transition-colors shadow-xs" title="Unlock with PIN">
+<span class="material-symbols-outlined text-[16px]">key</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 2. XLSX: Fresh Emerald / Green Sticky Note -->
+<div class="relative tilt-right sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#86efac] bg-[#f0fdf4] text-[#14532d] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-green-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#bbf7d0] text-[#15803d] border border-[#86efac] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">table_chart</span> XLSX
+      </span>
+<button class="text-[#15803d] hover:text-[#14532d] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-error flex-shrink-0 mt-0.5" title="PIN Protected">lock</span>
+<h3 class="font-title text-title text-[#14532d] font-bold leading-snug line-clamp-2">
+        Q4_Projections_Budget.xlsx
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#166534] mb-3">
+      1.2 MB • Alice Johnson
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#bbf7d0] text-[#15803d] border border-[#86efac]/60">#Finance</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#bbf7d0] text-[#15803d] border border-[#86efac]/60">#Project</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#86efac]/60">
+<span class="text-[10px] font-label-sm text-[#15803d] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Restricted
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#bbf7d0] hover:bg-[#86efac] text-[#15803d] flex items-center justify-center transition-colors shadow-xs" title="Download spreadsheet">
+<span class="material-symbols-outlined text-[16px]">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 3. PPTX: Warm Sunset Orange Sticky Note -->
+<div class="relative tilt-slight-right sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#fdba74] bg-[#fff7ed] text-[#7c2d12] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-orange-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#fed7aa] text-[#c2410c] border border-[#fdba74] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">slideshow</span> PPTX
+      </span>
+<button class="text-[#c2410c] hover:text-[#7c2d12] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-error flex-shrink-0 mt-0.5" title="PIN Protected">lock</span>
+<h3 class="font-title text-title text-[#7c2d12] font-bold leading-snug line-clamp-2">
+        Q4_AllHands_Presentation.pptx
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#c2410c] mb-3">
+      15.8 MB • Brian Miller
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#fed7aa] text-[#c2410c] border border-[#fdba74]/60">#Internal</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#fed7aa] text-[#c2410c] border border-[#fdba74]/60">#Operations</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#fdba74]/60">
+<span class="text-[10px] font-label-sm text-[#c2410c] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> 6-Char PIN
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#fed7aa] hover:bg-[#fdba74] text-[#c2410c] flex items-center justify-center transition-colors shadow-xs" title="Unlock slides">
+<span class="material-symbols-outlined text-[16px]">lock_open</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 4. TXT: Slate / Grey Sticky Note -->
+<div class="relative tilt-left sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#cbd5e1] bg-[#f8fafc] text-[#1e293b] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-slate-300"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#e2e8f0] text-[#475569] border border-[#cbd5e1] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">article</span> TXT
+      </span>
+<button class="text-[#475569] hover:text-[#1e293b] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container flex-shrink-0 mt-0.5" title="Open Access">bolt</span>
+<h3 class="font-title text-title text-[#1e293b] font-bold leading-snug line-clamp-2">
+        Physics_Formula_CheatSheet.txt
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#64748b] mb-3">
+      42.0 KB • Sarah Lin
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#e2e8f0] text-[#475569] border border-[#cbd5e1]">#Physics</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#e2e8f0] text-[#475569] border border-[#cbd5e1]">#Formulas</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#cbd5e1]">
+<span class="text-[10px] font-label-sm text-[#475569] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Open Access
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#475569] flex items-center justify-center transition-colors shadow-xs" title="View Raw Text">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 5. PDF: Crimson / Rose Red Sticky Note -->
+<div class="relative tilt-slight-left sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#fca5a5] bg-[#fff1f2] text-[#881337] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-rose-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#fecdd3] text-[#e11d48] border border-[#fca5a5] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">picture_as_pdf</span> PDF
+      </span>
+<button class="text-[#e11d48] hover:text-[#881337] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-error flex-shrink-0 mt-0.5" title="PIN Protected">lock</span>
+<h3 class="font-title text-title text-[#881337] font-bold leading-snug line-clamp-2">
+        Q3_Financial_Analysis.pdf
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#e11d48] mb-3">
+      2.4 MB • Akish Kumar
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#fecdd3] text-[#be123c] border border-[#fca5a5]/60">#Finance</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#fecdd3] text-[#be123c] border border-[#fca5a5]/60">#Confidential</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#fca5a5]/60">
+<span class="text-[10px] font-label-sm text-[#be123c] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> 6-Char PIN
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#fecdd3] hover:bg-[#fca5a5] text-[#be123c] flex items-center justify-center transition-colors shadow-xs" title="Unlock &amp; Download">
+<span class="material-symbols-outlined text-[16px]">key</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 6. PNG: Cyan / Teal Sticky Note -->
+<div class="relative tilt-right sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#5eead4] bg-[#f0fdfa] text-[#134e4a] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-teal-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#99f6e4] text-[#0f766e] border border-[#5eead4] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">image</span> PNG
+      </span>
+<button class="text-[#0f766e] hover:text-[#134e4a] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container flex-shrink-0 mt-0.5" title="Public File">bolt</span>
+<h3 class="font-title text-title text-[#134e4a] font-bold leading-snug line-clamp-2">
+        Security_Fox_Badge.png
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#0f766e] mb-3">
+      843.5 KB • Akish Kumar
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#ccfbf1] text-[#0f766e] border border-[#5eead4]/60">#Internal</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#ccfbf1] text-[#0f766e] border border-[#5eead4]/60">#Project</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#5eead4]/60">
+<span class="text-[10px] font-label-sm text-[#0f766e] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Public
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#99f6e4] hover:bg-[#5eead4] text-[#0f766e] flex items-center justify-center transition-colors shadow-xs" title="Download Image">
+<span class="material-symbols-outlined text-[16px]">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 7. JPG: Yellow / Honey Sticky Note -->
+<div class="relative tilt-slight-right sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#fde047] bg-[#fefce8] text-[#713f12] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-yellow-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#fef08a] text-[#854d0e] border border-[#fde047] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">image</span> JPG
+      </span>
+<button class="text-[#854d0e] hover:text-[#713f12] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-error flex-shrink-0 mt-0.5" title="Restricted Access">lock</span>
+<h3 class="font-title text-title text-[#713f12] font-bold leading-snug line-clamp-2">
+        Datacenter_Topology.jpg
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#854d0e] mb-3">
+      125.1 KB • Robert Chen
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#fef08a] text-[#854d0e] border border-[#fde047]/60">#Engineering</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#fef08a] text-[#854d0e] border border-[#fde047]/60">#Confidential</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#fde047]/60">
+<span class="text-[10px] font-label-sm text-[#854d0e] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Restricted
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#fef08a] hover:bg-[#fde047] text-[#854d0e] flex items-center justify-center transition-colors shadow-xs" title="Verify Credentials">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 8. JPEG: Purple / Violet Sticky Note -->
+<div class="relative tilt-left sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#e9d5ff] bg-[#faf5ff] text-[#581c87] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-purple-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#f3e8ff] text-[#7e22ce] border border-[#e9d5ff] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">photo_camera</span> JPEG
+      </span>
+<button class="text-[#7e22ce] hover:text-[#581c87] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container flex-shrink-0 mt-0.5" title="Open Access">bolt</span>
+<h3 class="font-title text-title text-[#581c87] font-bold leading-snug line-clamp-2">
+        Campus_Lab_Setup.jpeg
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#7e22ce] mb-3">
+      3.4 MB • Maya Patel
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#f3e8ff] text-[#7e22ce] border border-[#d8b4fe]/60">#Campus</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#f3e8ff] text-[#7e22ce] border border-[#d8b4fe]/60">#Lab</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#d8b4fe]/60">
+<span class="text-[10px] font-label-sm text-[#7e22ce] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Open Access
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#f3e8ff] hover:bg-[#e9d5ff] text-[#7e22ce] flex items-center justify-center transition-colors shadow-xs" title="Preview Photo">
+<span class="material-symbols-outlined text-[16px]">photo</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 9. DIR: Sky Blue / Cerulean Sticky Note -->
+<div class="relative tilt-right sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#7dd3fc] bg-[#f0f9ff] text-[#0c4a6e] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-sky-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#bae6fd] text-[#0369a1] border border-[#7dd3fc] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">folder</span> DIR
+      </span>
+<button class="text-[#0369a1] hover:text-[#0c4a6e] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container flex-shrink-0 mt-0.5" title="Open Directory">bolt</span>
+<h3 class="font-title text-title text-[#0c4a6e] font-bold leading-snug line-clamp-2">
+        Architecture_System_Specs
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#0284c7] mb-3">
+      12 Items • Robert Chen
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#bae6fd] text-[#0284c7] border border-[#7dd3fc]/60">#Engineering</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#bae6fd] text-[#0284c7] border border-[#7dd3fc]/60">#Project</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#7dd3fc]/60">
+<span class="text-[10px] font-label-sm text-[#0369a1] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Open Access
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#bae6fd] hover:bg-[#7dd3fc] text-[#0369a1] flex items-center justify-center transition-colors shadow-xs" title="Open Folder">
+<span class="material-symbols-outlined text-[16px]">folder_open</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 10. ENC / PEM: Lavender / Purple / Indigo Security Note -->
+<div class="relative tilt-slight-left sticky-shadow sticky-shadow-hover rounded-xl p-4 flex flex-col justify-between border border-[#c4b5fd] bg-[#f5f3ff] text-[#4c1d95] min-h-[220px]">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 washi-tape border-indigo-200"></div>
+<div>
+<div class="flex items-center justify-between mt-1 mb-2">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-[#ddd6fe] text-[#6d28d9] border border-[#c4b5fd] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">security</span> ENC
+      </span>
+<button class="text-[#6d28d9] hover:text-[#4c1d95] transition-colors p-1" title="More options">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-start gap-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-error flex-shrink-0 mt-0.5" title="PIN Protected">lock</span>
+<h3 class="font-title text-title text-[#4c1d95] font-bold leading-snug line-clamp-2">
+        Server_Keys_Backup.pem
+      </h3>
+</div>
+<p class="font-body-sm text-body-sm text-[#7c3aed] mb-3">
+      4.0 KB • Akish Kumar
+    </p>
+</div>
+<div>
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#ddd6fe] text-[#6d28d9] border border-[#c4b5fd]/60">#Confidential</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm font-semibold bg-[#ddd6fe] text-[#6d28d9] border border-[#c4b5fd]/60">#Operations</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#c4b5fd]/60">
+<span class="text-[10px] font-label-sm text-[#6d28d9] flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> AES-256 PIN
+      </span>
+<button class="w-7 h-7 rounded-md bg-[#ddd6fe] hover:bg-[#c4b5fd] text-[#6d28d9] flex items-center justify-center transition-colors shadow-xs" title="Enter Passkey">
+<span class="material-symbols-outlined text-[16px]">vpn_key</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 11. Pin New Note Card -->
+<div class="border-2 border-dashed border-outline-variant hover:border-primary rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer bg-surface-container-low/40 hover:bg-surface-container-low transition-all duration-200 group min-h-[220px]" onclick="document.getElementById('uploadModal').classList.remove('hidden')">
+<div class="w-12 h-12 rounded-full bg-surface-container-high group-hover:bg-primary-fixed flex items-center justify-center text-primary mb-2 transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-[26px]">note_add</span>
+</div>
+<p class="font-title text-title text-on-surface font-semibold mb-1">Pin New Note</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-[140px]">
+    Upload DOCX, XLSX, PPTX, PDF, images or code
+  </p>
+</div></div>
+</main>
+<!-- ================= UPLOAD MATERIAL MODAL ================= -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/40 backdrop-blur-xs p-4 hidden" id="uploadModal">
+<div class="bg-surface-container-lowest rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-outline-variant/30 relative">
+<!-- Close Button -->
+<button class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container transition-colors" onclick="document.getElementById('uploadModal').classList.add('hidden')">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">cloud_upload</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Upload to SchoolVault</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Share class lecture notes, slides, or syllabus files</p>
+</div>
+</div>
+<!-- Drag & Drop Zone -->
+<div class="border-2 border-dashed border-outline-variant/70 hover:border-primary rounded-xl p-6 text-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer mb-4">
+<span class="material-symbols-outlined text-[36px] text-primary mb-2">upload_file</span>
+<p class="font-title text-title text-on-surface mb-1">Click to select files or drag &amp; drop</p>
+<p class="font-label-sm text-label-sm text-outline">Supports PDF, DOCX, PPTX, XLSX, DIR, ZIP, PNG, JPG (up to 100MB)</p>
+</div>
+<!-- Security Option Picker -->
+<div class="mb-5">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">ACCESS &amp; ENCRYPTION LEVEL</label>
+<div class="grid grid-cols-2 gap-3">
+<label class="border border-primary bg-primary-fixed/20 rounded-xl p-3 flex items-start gap-2.5 cursor-pointer">
+<input checked="" class="mt-0.5 text-primary focus:ring-primary" name="accessLevel" type="radio">
+<div>
+<div class="font-title text-[13px] text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">lock</span> 6-Char PIN
+              </div>
+<p class="font-body-sm text-[11px] text-on-surface-variant leading-tight mt-0.5">Protected with custom 6-character access passkey</p>
+</div>
+</label>
+<label class="border border-outline-variant rounded-xl p-3 flex items-start gap-2.5 cursor-pointer hover:bg-surface-container-low">
+<input class="mt-0.5 text-primary focus:ring-primary" name="accessLevel" type="radio">
+<div>
+<div class="font-title text-[13px] text-on-surface font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-tertiary">bolt</span> Open Access
+              </div>
+<p class="font-body-sm text-[11px] text-on-surface-variant leading-tight mt-0.5">Instant passwordless access for classmates</p>
+</div>
+</label>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/20">
+<button class="px-4 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors" onclick="document.getElementById('uploadModal').classList.add('hidden')">
+          Cancel
+        </button>
+<button class="px-5 py-2 rounded-lg font-label-md text-label-md bg-primary hover:bg-primary-container text-on-primary shadow-sm transition-all" onclick="document.getElementById('uploadModal').classList.add('hidden')">
+          Publish Notes
+        </button>
+</div>
+</div>
+</div>
+<!-- ================= FOXXY AI STUDY ASSISTANT WIDGET ================= -->
+<div class="fixed bottom-6 right-6 z-40 flex flex-col items-end"><div class="mb-3 bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant/40 p-4 max-w-[320px] w-80 relative transition-all duration-200 hidden" id="foxxyCard"><div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-outline-variant/30"><div class="flex items-center gap-2.5"><div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-primary/20 bg-surface-container-high flex-shrink-0 shadow-sm"><img alt="Foxxy AI Tutor Mascot" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WIkuggYirfty2NLhPL6Tao1ydD05Fx-eDgBeCwbHCJawS0x4PW-m2MgQuV8bi-_s-NZyplNuRLDD6DcB_2qjFQcD1WQQg9D5LskHTlX2cHUBEGOEfIwB9e8Z2AbVw0IJL7rgf9QEnWDi-NRi34eIFUxG_j21J1Pni5hMrhOyDu8yWpYuig452BXq5ohYxn_AULbbKeYddRAt2pah3KoU5I6bPOqdRPNWpHedrHid9mNr8jPI53B0asPVnZjWf7BRGfDH9h9Cre"><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-surface-container-lowest"></span></div><div><div class="flex items-center gap-1.5"><span class="font-title text-[13px] font-bold text-on-surface">Foxxy AI</span><span class="px-1.5 py-0.2 rounded font-label-sm text-[9px] bg-primary-fixed text-primary font-bold uppercase tracking-wider">TUTOR</span></div><span class="font-label-sm text-[10px] text-secondary flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Ready to assist</span></div></div><button class="text-outline hover:text-on-surface p-1 rounded-md hover:bg-surface-container transition-colors" onclick="document.getElementById('foxxyCard').classList.toggle('hidden')" title="Minimize"><span class="material-symbols-outlined text-[16px]">close</span></button></div><div class="bg-surface-container-low/50 rounded-xl p-3 border border-outline-variant/20 mb-3"><p class="font-body-sm text-[12px] text-on-surface leading-snug">Hi! I'm <strong>Foxxy</strong> 🦊 Need help finding lecture notes, summarizing study sheets, or unlocking a file?</p></div><div class="mb-3"><div class="font-label-sm text-[10px] text-outline font-semibold uppercase tracking-wider mb-1.5">Quick Prompts</div><div class="flex flex-wrap gap-1.5"><button class="px-2.5 py-1 rounded-full text-[11px] font-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/40 transition-colors text-left flex items-center gap-1"><span class="">🔍</span> #Engineering notes</button><button class="px-2.5 py-1 rounded-full text-[11px] font-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/40 transition-colors text-left flex items-center gap-1"><span class="">⚡</span> Open access files</button><button class="px-2.5 py-1 rounded-full text-[11px] font-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/40 transition-colors text-left flex items-center gap-1"><span class="">📚</span> Exam prep summary</button></div></div><div class="pt-2 border-t border-outline-variant/30 flex items-center gap-2"><div class="relative flex-1"><input class="w-full pl-3 pr-8 py-1.5 text-body-sm text-[12px] bg-surface-container-low border border-outline-variant/40 rounded-lg placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Ask Foxxy or enter PIN..." type="text"><span class="material-symbols-outlined absolute right-2 top-2 text-outline text-[16px]">lock</span></div><button class="w-8 h-8 rounded-lg bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center shadow-xs transition-colors"><span class="material-symbols-outlined text-[16px]">send</span></button></div></div><button class="flex items-center gap-2.5 bg-surface-container-lowest hover:bg-surface-container-low border border-outline-variant/50 text-on-surface pl-2 pr-4 py-1.5 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 group" onclick="document.getElementById('foxxyCard').classList.toggle('hidden')"><div class="relative w-8 h-8 rounded-full overflow-hidden border border-outline-variant/40 bg-surface-container-high flex-shrink-0"><img alt="Foxxy Mascot" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WIkuggYirfty2NLhPL6Tao1ydD05Fx-eDgBeCwbHCJawS0x4PW-m2MgQuV8bi-_s-NZyplNuRLDD6DcB_2qjFQcD1WQQg9D5LskHTlX2cHUBEGOEfIwB9e8Z2AbVw0IJL7rgf9QEnWDi-NRi34eIFUxG_j21J1Pni5hMrhOyDu8yWpYuig452BXq5ohYxn_AULbbKeYddRAt2pah3KoU5I6bPOqdRPNWpHedrHid9mNr8jPI53B0asPVnZjWf7BRGfDH9h9Cre"><span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-secondary border border-surface-container-lowest"></span></div><div class="text-left"><div class="font-title text-[12px] leading-tight flex items-center gap-1 font-bold">FOXXY <span class="text-[9px] px-1 py-0.2 bg-primary-fixed text-primary rounded font-mono">AI</span></div><div class="font-label-sm text-[10px] text-outline leading-tight">Study Assistant • Online</div></div><span class="material-symbols-outlined text-[16px] text-primary transition-colors ml-1">chat</span></button></div>
+<!-- ================= FOOTER (Shared Component Anchor) ================= -->
+<footer class="w-full py-6 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left mt-auto bg-surface border-t border-outline-variant/20">
+<!-- Copyright & Campus Encryption Proof -->
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">encrypted</span>
+<span class="">Vault • 256-Bit Encrypted Campus Repository • Designed for collaborative learning</span>
+</div>
+<!-- Navigation / Legal Links -->
+<div class="flex flex-wrap items-center justify-center gap-6 text-label-sm font-label-sm">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-150" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-150" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-150" href="#">Campus Guidelines</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-150" href="#">API Documentation</a>
+</div>
+</footer>
+<!-- Micro-interactions Script -->
+<script>
+    // Keyboard shortcut CMD+K focus
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[type="text"]');
+        if (searchInput) searchInput.focus();
+      }
+    });
+
+    // Dismiss upload modal on ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('uploadModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+        }
+      }
+    });
+  </script>
+</body></html>
