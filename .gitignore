@@ -8,5 +8,9 @@ coverage/
 !.env.example
 EncryptedUploads/
 .active_sessions.json
+certs/*.key
+certs/*.crt
+certs/*.pem
+!certs/.gitkeep
 .antigravity/
 .aistudio/

@@ -15,7 +15,8 @@ FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=443
+ENV HTTP_PORT=80
 
 # Copy runtime files
 COPY package.json ./
@@ -23,11 +24,12 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.ts ./server.ts
 COPY --from=builder /app/fox-idle.png ./fox-idle.png
+# Ensure directories exist
+RUN mkdir -p /app/EncryptedUploads /app/certs
 
-# Ensure upload directory exists
-RUN mkdir -p /app/EncryptedUploads
+COPY --from=builder /app/certs ./certs
 
 VOLUME ["/app/EncryptedUploads"]
-EXPOSE 3000
+EXPOSE 443 80 3000
 
 CMD ["bun", "server.ts"]

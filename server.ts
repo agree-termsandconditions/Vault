@@ -1,3 +1,5 @@
+import http from "http";
+import https from "https";
 import express from "express";
 import path from "path";
 import fs from "fs";
@@ -11,7 +13,7 @@ import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 dotenv.config();
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 443;
 
 // Institutional Security: Disable fingerprinting & apply baseline HTTP security headers
 app.disable("x-powered-by");
@@ -255,15 +257,50 @@ interface ServerEmployee {
 // Initial Faculty, Admins & Master Admin Classified by Allocated Department
 // All passwords and Quick PINs are hashed immediately upon initialization
 const initialRawEmployees = [
-  { id: 1, emp_id: "EMP-1001", full_name: "Akish Kumar", department: "IT", email: "akish@campus.edu", designation: "Master Administrator & IT Governance Head", user_type: "master_admin" as const, is_admin: true, is_master_admin: true, passwordless_allowed: true, printer_access_allowed: true, rawPass: "Akish@143", rawPin: "143143", is_activated: true, must_change_password: false, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 2, emp_id: "EMP-1002", full_name: "Dr. Meera Nair", department: "Science", email: "meera.nair@campus.edu", designation: "Senior Science Teacher", user_type: "regular" as const, is_admin: false, is_master_admin: false, passwordless_allowed: true, printer_access_allowed: false, rawPass: "Meera@2026!", rawPin: "100299", is_activated: true, must_change_password: false, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 3, emp_id: "EMP-1003", full_name: "Prof. Rajesh Sharma", department: "Mathematics", email: "rajesh.sharma@campus.edu", designation: "Mathematics Teacher", user_type: "regular" as const, is_admin: false, is_master_admin: false, passwordless_allowed: false, printer_access_allowed: false, rawPass: "EMP-1003@2027", rawPin: "", is_activated: false, must_change_password: true, last_password_reset: "", reset_request_status: "pending" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 4, emp_id: "EMP-1004", full_name: "Smt. Kavitha Hegde", department: "Kannada", email: "kavitha.hegde@campus.edu", designation: "Kannada Language Teacher", user_type: "regular" as const, is_admin: false, is_master_admin: false, passwordless_allowed: false, printer_access_allowed: false, rawPass: "Kavitha@2026!", rawPin: "100488", is_activated: true, must_change_password: false, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 5, emp_id: "EMP-1005", full_name: "Prof. Anita Desai", department: "Social Science", email: "anita.desai@campus.edu", designation: "Campus Administrator & Social Science Head", user_type: "admin" as const, is_admin: true, is_master_admin: false, passwordless_allowed: true, printer_access_allowed: true, rawPass: "Admin@123!", rawPin: "100577", is_activated: true, must_change_password: false, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 6, emp_id: "EMP-1006", full_name: "Mr. Eleanor Vance", department: "English", email: "eleanor.vance@campus.edu", designation: "English Literature Teacher", user_type: "superuser" as const, is_admin: false, is_master_admin: false, passwordless_allowed: true, printer_access_allowed: true, rawPass: "Eleanor@2026!", rawPin: "100666", is_activated: true, must_change_password: false, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 7, emp_id: "EMP-1007", full_name: "Coach Vikram Rathore", department: "Physical Education", email: "vikram.rathore@campus.edu", designation: "Physical Education Director", user_type: "regular" as const, is_admin: false, is_master_admin: false, passwordless_allowed: false, printer_access_allowed: false, rawPass: "EMP-1007@2027", rawPin: "", is_activated: false, must_change_password: true, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 8, emp_id: "EMP-1008", full_name: "Ms. Maya Patel", department: "Arts", email: "maya.patel@campus.edu", designation: "Fine Arts & Drawing Teacher", user_type: "regular" as const, is_admin: false, is_master_admin: false, passwordless_allowed: true, printer_access_allowed: false, rawPass: "Maya@2026!", rawPin: "100855", is_activated: true, must_change_password: false, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true },
-  { id: 9, emp_id: "EMP-1009", full_name: "Mr. Brian Miller", department: "Others", email: "brian.miller@campus.edu", designation: "Academic Coordinator", user_type: "regular" as const, is_admin: false, is_master_admin: false, passwordless_allowed: false, printer_access_allowed: false, rawPass: "EMP-1009@2027", rawPin: "", is_activated: false, must_change_password: true, last_password_reset: "", reset_request_status: "none" as const, active_reset_token: "", reset_token_expires_at: "", is_active: true }
+  {
+    id: 1,
+    emp_id: "Akish",
+    full_name: "Akish",
+    department: "IT",
+    email: "akish@campus.edu",
+    designation: "Master Administrator",
+    user_type: "master_admin" as const,
+    is_admin: true,
+    is_master_admin: true,
+    passwordless_allowed: true,
+    printer_access_allowed: true,
+    rawPass: "294280",
+    rawPin: "294280",
+    is_activated: true,
+    must_change_password: false,
+    last_password_reset: "",
+    reset_request_status: "none" as const,
+    active_reset_token: "",
+    reset_token_expires_at: "",
+    is_active: true
+  },
+  {
+    id: 2,
+    emp_id: "test",
+    full_name: "Test User",
+    department: "IT",
+    email: "test@campus.edu",
+    designation: "Faculty User",
+    user_type: "regular" as const,
+    is_admin: false,
+    is_master_admin: false,
+    passwordless_allowed: true,
+    printer_access_allowed: false,
+    rawPass: "Test@134",
+    rawPin: "",
+    is_activated: true,
+    must_change_password: false,
+    last_password_reset: "",
+    reset_request_status: "none" as const,
+    active_reset_token: "",
+    reset_token_expires_at: "",
+    is_active: true
+  }
 ];
 
 let employees: ServerEmployee[] = initialRawEmployees.map(r => {
@@ -305,22 +342,7 @@ function validateGooglePasswordPolicy(pwd: string, empId?: string): { valid: boo
 }
 
 // Password Reset Requests Queue
-let passwordResetRequests = [
-  {
-    id: 1,
-    emp_id: "EMP-1003",
-    full_name: "Prof. Rajesh Sharma",
-    department: "Mathematics",
-    email: "rajesh.sharma@campus.edu",
-    reason: "Forgot portal password after terminal session upgrade",
-    status: "pending",
-    reset_token: "",
-    token_expires_at: "",
-    issued_by: "",
-    requested_at: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-    completed_at: ""
-  }
-];
+let passwordResetRequests: any[] = [];
 
 // Initial Whitelist Seed (Alphabetical Order)
 let allowedExtensions = [
@@ -907,50 +929,15 @@ Department: Others (Academic Examination Cell) | Mr. Brian Miller
   - SOC-10A-SET1 (Verified & Sealed)
   - ENG-10A-SET3 (Verified & Sealed)`;
 
-// Study Files across Faculty Departments with shortened [Dept, Grade, Section] tags (up to 3 tags)
-let vaultFiles = [
-  createSampleFileWithExpiry(
-    11,
-    "விடுதலை_Vol_3_55_Sep_2_1937.pdf",
-    "PDF",
-    5.1 * 1024 * 1024,
-    "5.1 MB",
-    "Prof. Anita Desai",
-    "Social Science",
-    true,
-    false,
-    0,
-    ["SS", "10", "G"],
-    48,
-    generateMinimalValidPdf(
-      "VIDUTHALAI - Vol. 3, Issue 55 (Sep 2, 1937)",
-      "Social Science & Historical Research Department",
-      "Prof. Anita Desai - Grade 10 Section G - Verified Academic Study Material"
-    )
-  ),
-  createSampleFileWithExpiry(1, "CS301_Algorithm_Notes.docx", "DOCX", 3.8 * 1024 * 1024, "3.8 MB", "Akish Kumar", "IT", false, false, 0, ["IT", "8", "A"], 47, STUDY_NOTE_CS301),
-  createSampleFileWithExpiry(2, "Algebra_Geometry_Workbook.xlsx", "XLSX", 1.2 * 1024 * 1024, "1.2 MB", "Prof. Rajesh Sharma", "Mathematics", false, false, 0, ["Math", "7", "B"], 42, STUDY_NOTE_MATH),
-  createSampleFileWithExpiry(3, "Indian_History_Civics.pptx", "PPTX", 15.8 * 1024 * 1024, "15.8 MB", "Prof. Anita Desai", "Social Science", false, false, 0, ["SS", "8", "A"], 36, STUDY_NOTE_HISTORY),
-  createSampleFileWithExpiry(4, "ಕನ್ನಡ_ವ್ಯಾಕರಣ_ಪ್ರಬಂಧ_ಟಿಪ್ಪಣಿಗಳು.txt", "TXT", 42 * 1024, "42.0 KB", "Smt. Kavitha Hegde", "Kannada", true, false, 0, ["Kan", "6", "B"], 24, STUDY_NOTE_KANNADA),
-  createSampleFileWithExpiry(5, "Human_Body_Anatomy.pdf", "PDF", 2.4 * 1024 * 1024, "2.4 MB", "Dr. Meera Nair", "Science", false, false, 0, ["Sci", "6", "A"], 19, STUDY_NOTE_SCIENCE),
-  createSampleFileWithExpiry(6, "English_Grammar_Chart.png", "PNG", 843.5 * 1024, "843.5 KB", "Mr. Eleanor Vance", "English", true, false, 0, ["Eng", "7", "A"], 45, samplePngBuffer),
-  createSampleFileWithExpiry(7, "Athletics_Field_Layout.jpg", "JPG", 125.1 * 1024, "125.1 KB", "Coach Vikram Rathore", "Physical Education", false, false, 0, ["PE", "8"], 31, sampleJpgBuffer),
-  createSampleFileWithExpiry(8, "Perspective_Drawing_Guide.jpeg", "JPEG", 3.4 * 1024 * 1024, "3.4 MB", "Ms. Maya Patel", "Arts", true, false, 0, ["Arts", "6", "C"], 28, sampleJpgBuffer),
-  createSampleFileWithExpiry(9, "Science_Lab_Experiments", "DIR", 0, "12 Items", "Dr. Meera Nair", "Science", true, true, 12, ["Sci", "7", "A"], 12, STUDY_NOTE_LAB_DIR),
-  createSampleFileWithExpiry(10, "Exam_Board_Master_Keys.pem", "ENC", 4 * 1024, "4.0 KB", "Mr. Brian Miller", "Others", false, false, 0, ["Others", "10", "A"], 8, STUDY_NOTE_EXAM_KEYS),
-  createSampleFileWithExpiry(12, "हिंदी_साहित्य_व_व्याकरण_अभ्यास.txt", "TXT", 68 * 1024, "68.0 KB", "Prof. Anita Desai", "Others", true, false, 0, ["Others", "9", "A"], 36, STUDY_NOTE_HINDI)
-];
-filePinMap.set(11, "PWDLESS_PUBLIC");
-filePinMap.set(12, "PWDLESS_PUBLIC");
+// Study Files across Faculty Departments (Clean Production Repository - Ready for real usage)
+let vaultFiles: any[] = [];
 
 // Audit logs
 let auditLogs = [
-  { id: 1, action: "SYSTEM_BOOT", emp_id: "SYSTEM", file_name: "-", status: "SUCCESS", details: "Intranet Vault 256-bit AES engine initialized.", created_at: new Date().toISOString() },
-  { id: 2, action: "AUTH_VERIFY", emp_id: "EMP-1001", file_name: "-", status: "SUCCESS", details: "Master Admin Akish logged in with Verified Session.", created_at: new Date(Date.now() - 300000).toISOString() },
-  { id: 3, action: "SEED_INITIALIZE", emp_id: "SYSTEM", file_name: "Human_Body_Anatomy.pdf", status: "SUCCESS", details: "Pre-seeded secure storage record.", created_at: new Date(Date.now() - 600000).toISOString() }
+  { id: 1, action: "SYSTEM_BOOT", emp_id: "SYSTEM", file_name: "-", status: "SUCCESS", details: "Campus Study Vault AES-256 Engine initialized.", created_at: new Date().toISOString() }
 ];
 
-let nextLogId = 4;
+let nextLogId = 2;
 function addAuditLog(action, emp_id, file_name, status, details) {
   auditLogs.unshift({
     id: nextLogId++,
@@ -1494,6 +1481,23 @@ function inspectFileMagicBytes(buffer: Buffer, extUpper: string, originalName: s
   return { valid: true, detectedHex: spacedHex };
 }
 
+// Protection PIN policy validator: requires exactly 6 characters with at least 1 letter and 1 number (e.g. 12569c or aserc2)
+function isValidProtectionPin(pin: unknown): { valid: boolean; error?: string } {
+  if (typeof pin !== "string" || pin.trim().length !== 6) {
+    return { valid: false, error: "Protection PIN must be exactly 6 characters." };
+  }
+  const cleanPin = pin.trim();
+  const hasLetter = /[a-zA-Z]/.test(cleanPin);
+  const hasNumber = /[0-9]/.test(cleanPin);
+  if (!hasLetter || !hasNumber) {
+    return {
+      valid: false,
+      error: "Protection PIN must contain at least 1 letter and 1 number (e.g. 12569c or aserc2)."
+    };
+  }
+  return { valid: true };
+}
+
 // Upload Files API (Enforces 3-Step Real-Time Magic Byte Inspection & Rate Limiting)
 app.post("/api/upload", uploadRateLimiter, (req, res) => {
   upload.array("files")(req, res, (multerErr) => {
@@ -1529,8 +1533,11 @@ app.post("/api/upload", uploadRateLimiter, (req, res) => {
         tags = tags.slice(0, 3).map(shortenTag);
       }
 
-      if (!isPasswordless && pin.length !== 6) {
-        return res.status(400).json({ success: false, error: "Protection PIN must be exactly 6 characters." });
+      if (!isPasswordless) {
+        const pinCheck = isValidProtectionPin(pin);
+        if (!pinCheck.valid) {
+          return res.status(400).json({ success: false, error: pinCheck.error });
+        }
       }
 
       if (!files || files.length === 0) {
@@ -1679,12 +1686,20 @@ app.post("/api/links", uploadRateLimiter, (req, res) => {
     let ivHex = "";
     let encryptedStorage = "";
 
+    if (!is_passwordless) {
+      const pinCheck = isValidProtectionPin(pin);
+      if (!pinCheck.valid) {
+        return res.status(400).json({ success: false, error: pinCheck.error });
+      }
+    }
+
     const newId = vaultFiles.length > 0 ? Math.max(...vaultFiles.map(f => f.id)) + 1 : 1;
-    const encPin = is_passwordless ? "PWDLESS_PUBLIC" : String(pin || "");
+    const cleanPin = String(pin || "").trim();
+    const encPin = is_passwordless ? "PWDLESS_PUBLIC" : cleanPin;
     filePinMap.set(newId, encPin);
 
-    if (!is_passwordless && pin) {
-      const { encrypted, saltHex: sHex, ivHex: iHex } = encryptData(Buffer.from(effectiveUrl, "utf-8"), pin);
+    if (!is_passwordless) {
+      const { encrypted, saltHex: sHex, ivHex: iHex } = encryptData(Buffer.from(effectiveUrl, "utf-8"), cleanPin);
       saltHex = sHex;
       ivHex = iHex;
       encryptedStorage = encrypted.toString("hex");
@@ -3072,7 +3087,19 @@ app.post("/api/admin/file-action", requireAdmin, (req, res) => {
   if (action === "toggle_protection") {
     const oldPin = filePinMap.get(Number(file.id)) || (file.is_passwordless ? "PWDLESS_PUBLIC" : "");
     file.is_passwordless = !file.is_passwordless;
-    const newPin = file.is_passwordless ? "PWDLESS_PUBLIC" : (req.body.pin || crypto.randomBytes(3).toString("hex"));
+    let newPin = "PWDLESS_PUBLIC";
+    if (!file.is_passwordless) {
+      if (req.body.pin) {
+        const pinCheck = isValidProtectionPin(req.body.pin);
+        if (!pinCheck.valid) {
+          file.is_passwordless = true;
+          return res.status(400).json({ success: false, error: pinCheck.error });
+        }
+        newPin = req.body.pin.trim();
+      } else {
+        newPin = "1a" + crypto.randomBytes(2).toString("hex");
+      }
+    }
     filePinMap.set(Number(file.id), newPin);
 
     if (fs.existsSync(file.storage_path) && oldPin) {
@@ -3221,7 +3248,7 @@ app.post("/api/auth/login", authRateLimiter, (req, res) => {
     cleanId === "emp-1001" ||
     cleanId === "1001";
 
-  const masterEmp = employees.find(e => e.emp_id.toLowerCase() === "emp-1001");
+  const masterEmp = employees.find(e => e.is_master_admin || e.emp_id.toLowerCase() === "akish" || e.emp_id.toLowerCase() === "emp-1001");
 
   if (isMasterAdminIdentifier && masterEmp) {
     const isPassMatch = verifySecret(rawPass, masterEmp.password_hash, masterEmp.password_salt);
@@ -3229,12 +3256,12 @@ app.post("/api/auth/login", authRateLimiter, (req, res) => {
 
     if (isPassMatch || isPinMatch) {
       const sessionToken = createSession(masterEmp);
-      addAuditLog("AUTH_LOGIN", "EMP-1001", "-", "SUCCESS", "Master Admin authenticated via unified Campus Login Portal.");
+      addAuditLog("AUTH_LOGIN", masterEmp.emp_id, "-", "SUCCESS", "Master Admin authenticated via unified Campus Login Portal.");
       return res.json({
         success: true,
         token: sessionToken,
         user: {
-          empId: "EMP-1001",
+          empId: masterEmp.emp_id,
           username: "akish",
           fullName: masterEmp.full_name,
           role: "Master Administrator (Full Governance)",
@@ -3269,7 +3296,7 @@ app.post("/api/auth/login", authRateLimiter, (req, res) => {
     addAuditLog("AUTH_FAILED", rawId.toUpperCase(), "-", "DENIED", "Unrecognized Employee ID on Campus Login Portal.");
     return res.status(404).json({
       success: false,
-      error: `Employee ID "${rawId}" was not found. Use a valid ID (e.g., EMP-1002, EMP-1007, or EMP-1001).`
+      error: `Employee ID "${rawId}" was not found. Please check your credentials.`
     });
   }
 
@@ -3918,9 +3945,62 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Intranet Vault Server running on http://localhost:${PORT}`);
+  const certDir = path.join(process.cwd(), "certs");
+  if (!fs.existsSync(certDir)) {
+    try { fs.mkdirSync(certDir, { recursive: true }); } catch (_e) {}
+  }
+  const certKeyPath = path.join(certDir, "server.key");
+  const certCrtPath = path.join(certDir, "server.crt");
+
+  // Auto-generate self-signed SSL cert for akish.online if not already supplied
+  if (!fs.existsSync(certKeyPath) || !fs.existsSync(certCrtPath)) {
+    try {
+      execSync(`openssl req -x509 -newkey rsa:2048 -nodes -keyout "${certKeyPath}" -out "${certCrtPath}" -days 365 -subj "/CN=akish.online"`, { stdio: "ignore" });
+    } catch (_e) {}
+  }
+
+  // 1. Launch HTTPS Server (Port 443 / Standard SSL for https://akish.online)
+  if (fs.existsSync(certKeyPath) && fs.existsSync(certCrtPath)) {
+    try {
+      const sslOptions = {
+        key: fs.readFileSync(certKeyPath),
+        cert: fs.readFileSync(certCrtPath)
+      };
+      const httpsPort = Number(process.env.HTTPS_PORT) || 443;
+      const httpsServer = https.createServer(sslOptions, app);
+      httpsServer.listen(httpsPort, "0.0.0.0", () => {
+        console.log(`[HTTPS READY] Campus Study Vault SSL active on port ${httpsPort} -> https://akish.online / https://localhost`);
+      });
+      httpsServer.on("error", (err: any) => {
+        console.warn(`[HTTPS Warning on port ${httpsPort}]:`, err.message);
+      });
+    } catch (sslErr: any) {
+      console.warn(`[SSL Startup Notice]:`, sslErr.message);
+    }
+  }
+
+  // 2. Launch HTTP Server (Port 80 / fallback ports)
+  const httpPort = Number(process.env.HTTP_PORT) || (PORT === 443 ? 80 : PORT);
+  const httpServer = http.createServer(app);
+  httpServer.listen(httpPort, "0.0.0.0", () => {
+    console.log(`[HTTP READY] Campus Study Vault running on port ${httpPort} -> http://localhost:${httpPort}`);
   });
+  httpServer.on("error", (err: any) => {
+    console.warn(`[HTTP Warning on port ${httpPort}]:`, err.message);
+  });
+
+  // 3. Optional Port 3000 helper for development / local testing convenience
+  if (httpPort !== 3000 && process.env.ENABLE_PORT_3000 !== "false") {
+    try {
+      const devServer = http.createServer(app);
+      devServer.listen(3000, "0.0.0.0", () => {
+        console.log(`[HTTP 3000] Local convenience listener active on http://localhost:3000`);
+      });
+      devServer.on("error", () => {
+        // Silently skip if 3000 is occupied
+      });
+    } catch (_e) {}
+  }
 }
 
 startServer();

@@ -336,10 +336,20 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
 
       if (activeTab === 'upload') {
         const fullPin = pinDigits.join('');
-        if (uploadProtection === 'pin' && fullPin.length !== 6) {
-          setStatusMessage({ type: 'error', text: 'Protection PIN must be exactly 6 characters.' });
-          setIsSubmitting(false);
-          return;
+        if (uploadProtection === 'pin') {
+          if (fullPin.length !== 6) {
+            setStatusMessage({ type: 'error', text: 'Protection PIN must be exactly 6 characters.' });
+            setIsSubmitting(false);
+            return;
+          }
+          if (!/[a-zA-Z]/.test(fullPin) || !/[0-9]/.test(fullPin)) {
+            setStatusMessage({
+              type: 'error',
+              text: 'Protection PIN must contain at least 1 letter and 1 number (e.g. 12569c or aserc2).'
+            });
+            setIsSubmitting(false);
+            return;
+          }
         }
 
         const formData = new FormData();
@@ -375,10 +385,20 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
           setStatusMessage({ type: 'error', text: data.error || 'Upload failed.' });
         }
       } else {
-        if (linkProtection === 'pin' && linkPin.length !== 6) {
-          setStatusMessage({ type: 'error', text: 'Protection PIN must be exactly 6 characters.' });
-          setIsSubmitting(false);
-          return;
+        if (linkProtection === 'pin') {
+          if (linkPin.length !== 6) {
+            setStatusMessage({ type: 'error', text: 'Protection PIN must be exactly 6 characters.' });
+            setIsSubmitting(false);
+            return;
+          }
+          if (!/[a-zA-Z]/.test(linkPin) || !/[0-9]/.test(linkPin)) {
+            setStatusMessage({
+              type: 'error',
+              text: 'Protection PIN must contain at least 1 letter and 1 number (e.g. 12569c or aserc2).'
+            });
+            setIsSubmitting(false);
+            return;
+          }
         }
 
         const payload = {
@@ -815,13 +835,18 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                     : 'bg-slate-100 border-slate-200 select-none'
                 }`}
               >
-                <label
-                  className={`text-xs font-extrabold shrink-0 ${
-                    uploadProtection === 'pin' ? 'text-amber-900' : 'text-slate-400'
-                  }`}
-                >
-                  Set 6-Character Access PIN:
-                </label>
+                <div className="flex flex-col">
+                  <label
+                    className={`text-xs font-extrabold shrink-0 ${
+                      uploadProtection === 'pin' ? 'text-amber-900' : 'text-slate-400'
+                    }`}
+                  >
+                    Set 6-Character Access PIN:
+                  </label>
+                  <span className="text-[10.5px] text-amber-700/80 font-medium">
+                    At least 1 letter & 1 number (e.g. 12569c or aserc2)
+                  </span>
+                </div>
                 <div className="flex items-center justify-end gap-2">
                   {pinDigits.map((digit, idx) => (
                     <input
@@ -863,13 +888,18 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                     : 'bg-slate-100 border-slate-200 select-none'
                 }`}
               >
-                <label
-                  className={`text-xs font-extrabold shrink-0 ${
-                    linkProtection === 'pin' ? 'text-amber-900' : 'text-slate-400'
-                  }`}
-                >
-                  Set 6-Character Access PIN:
-                </label>
+                <div className="flex flex-col">
+                  <label
+                    className={`text-xs font-extrabold shrink-0 ${
+                      linkProtection === 'pin' ? 'text-amber-900' : 'text-slate-400'
+                    }`}
+                  >
+                    Set 6-Character Access PIN:
+                  </label>
+                  <span className="text-[10.5px] text-amber-700/80 font-medium">
+                    At least 1 letter & 1 number (e.g. 12569c or aserc2)
+                  </span>
+                </div>
                 <input
                   type="text"
                   maxLength={6}

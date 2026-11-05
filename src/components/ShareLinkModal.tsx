@@ -118,9 +118,15 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
       return;
     }
 
-    if (!isPasswordless && (!pin || pin.length < 4)) {
-      setErrorMessage('Please provide a protection PIN (at least 4 characters).');
-      return;
+    if (!isPasswordless) {
+      if (!pin || pin.trim().length !== 6) {
+        setErrorMessage('Protection PIN must be exactly 6 characters.');
+        return;
+      }
+      if (!/[a-zA-Z]/.test(pin) || !/[0-9]/.test(pin)) {
+        setErrorMessage('Protection PIN must contain at least 1 letter and 1 number (e.g. 12569c or aserc2).');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -365,15 +371,15 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
             {!isPasswordless && (
               <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2 animate-in fade-in">
                 <label className="text-xs font-bold text-amber-900 flex items-center justify-between">
-                  <span>Set 6-Character Protection PIN</span>
-                  <span className="text-[10px] font-normal text-amber-700">AES-256 Encrypted</span>
+                  <span>Set 6-Character Protection PIN (1 letter + 1 number)</span>
+                  <span className="text-[10px] font-normal text-amber-700">AES-256</span>
                 </label>
                 <input
                   type="password"
-                  placeholder="Enter secret PIN (e.g. 123456)..."
+                  placeholder="e.g. 12569c or aserc2"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  maxLength={16}
+                  maxLength={6}
                   required={!isPasswordless}
                   className="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 />

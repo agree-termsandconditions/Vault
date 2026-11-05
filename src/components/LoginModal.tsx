@@ -39,7 +39,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLoginSuccess,
 }) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [empId, setEmpId] = useState('EMP-1002');
+  const [empId, setEmpId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -165,61 +165,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     await executeLogin(empId, password);
   };
 
-  const handleQuickFillAndSignIn = (presetEmpId: string, presetPassword: string) => {
-    setEmpId(presetEmpId);
-    setPassword(presetPassword);
-    executeLogin(presetEmpId, presetPassword);
-  };
-
-  const demoAccounts = [
-    {
-      id: 'EMP-1002',
-      password: '100299',
-      label: 'Faculty (PIN)',
-      sublabel: 'Quick PIN',
-      color: 'blue',
-      onClick: () => handleQuickFillAndSignIn('EMP-1002', '100299'),
-    },
-    {
-      id: 'EMP-1007',
-      password: 'EMP-1007@2027',
-      label: '1st Login (0)',
-      sublabel: 'Unactivated',
-      color: 'amber',
-      onClick: () => {
-        setEmpId('EMP-1007');
-        setPassword('EMP-1007@2027');
-        setErrorMessage(null);
-      },
-    },
-    {
-      id: 'EMP-1005',
-      password: 'Admin@123!',
-      label: 'Campus Admin',
-      sublabel: 'Full access',
-      color: 'violet',
-      onClick: () => handleQuickFillAndSignIn('EMP-1005', 'Admin@123!'),
-    },
-    {
-      id: 'EMP-1001',
-      password: 'Akish@143',
-      label: 'Master Admin',
-      sublabel: 'Root access',
-      color: 'emerald',
-      onClick: () => handleQuickFillAndSignIn('EMP-1001', 'Akish@143'),
-    },
-  ];
-
-  const getAccountColors = (color: string) => {
-    const map: Record<string, { bg: string; border: string; hoverBg: string; text: string; dot: string }> = {
-      blue:    { bg: 'bg-blue-50/80',    border: 'border-blue-200/80',    hoverBg: 'hover:bg-blue-100/80',    text: 'text-blue-700',    dot: 'bg-blue-500' },
-      amber:   { bg: 'bg-amber-50/80',   border: 'border-amber-200/80',   hoverBg: 'hover:bg-amber-100/80',   text: 'text-amber-700',   dot: 'bg-amber-500' },
-      violet:  { bg: 'bg-violet-50/80',  border: 'border-violet-200/80',  hoverBg: 'hover:bg-violet-100/80',  text: 'text-violet-700',  dot: 'bg-violet-500' },
-      emerald: { bg: 'bg-emerald-50/80', border: 'border-emerald-200/80', hoverBg: 'hover:bg-emerald-100/80', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-    };
-    return map[color] || map.blue;
-  };
-
   return (
     <div
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
@@ -293,25 +238,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <form onSubmit={handleUnifiedLogin} className="space-y-4">
             {/* Employee ID */}
             <div className="space-y-1.5">
-              <label className="text-[12.5px] font-bold text-slate-700 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <BadgeCheck className="w-3.5 h-3.5 text-blue-600" />
-                  Employee ID
-                </span>
-                <span className="text-[10.5px] font-medium text-slate-400">
-                  Role auto-detected
-                </span>
+              <label className="text-[12.5px] font-bold text-slate-700 flex items-center gap-1.5">
+                <BadgeCheck className="w-3.5 h-3.5 text-blue-600" />
+                Employee ID
               </label>
               <input
                 type="text"
-                list="campus-employee-ids"
                 required
                 value={empId}
                 onChange={(e) => {
                   setEmpId(e.target.value);
                   if (errorMessage) setErrorMessage(null);
                 }}
-                placeholder="e.g. EMP-1002"
+                placeholder="e.g. Akish or test"
                 className="w-full h-11 bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 rounded-xl px-4 text-[13px] font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal outline-none transition-all"
               />
             </div>
@@ -356,19 +295,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-[11px] text-slate-400 mt-1 flex items-start gap-1.5 leading-relaxed">
-                <Zap className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                <span>
-                  New users: sign in with <code className="font-mono font-bold text-slate-600 bg-slate-100 px-1 py-0.5 rounded text-[10px]">{empId.trim() || 'EMP-ID'}@2027</code> to activate.
-                </span>
-              </p>
             </div>
 
             {/* Submit */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-[13px] rounded-xl transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-[13px] rounded-xl transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
               {isSubmitting ? (
                 <>
@@ -384,58 +317,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               )}
             </button>
           </form>
-
-          <datalist id="campus-employee-ids">
-            {employees.length > 0 ? (
-              employees.map((emp) => (
-                <option key={emp.id} value={emp.emp_id}>
-                  {emp.full_name} — {emp.department} ({emp.is_activated ? 'Activated: 1' : 'Not Activated: 0'})
-                </option>
-              ))
-            ) : (
-              <>
-                <option value="EMP-1001">Akish Kumar — IT Dept (Master Admin)</option>
-                <option value="EMP-1002">Dr. Meera Nair — Science Dept (Quick PIN: 100299)</option>
-                <option value="EMP-1003">Prof. Rajesh Sharma — Mathematics Dept (Unactivated: 0)</option>
-                <option value="EMP-1005">Prof. Anita Desai — Social Science Dept (Admin)</option>
-                <option value="EMP-1007">Coach Vikram Rathore — PE Dept (First Login: EMP-1007@2027)</option>
-              </>
-            )}
-          </datalist>
-        </div>
-
-        {/* ─── Demo Accounts Section ─── */}
-        <div className="bg-slate-50 border-t border-slate-200/80 px-7 py-4 space-y-2.5">
-          <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
-            Quick Demo Accounts
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {demoAccounts.map((account) => {
-              const colors = getAccountColors(account.color);
-              return (
-                <button
-                  key={account.id}
-                  type="button"
-                  onClick={account.onClick}
-                  className={`${colors.bg} ${colors.hoverBg} border ${colors.border} py-2 px-3 rounded-xl text-left cursor-pointer transition-all hover:shadow-sm group`}
-                  title={`Sign in as ${account.label}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${colors.dot} shrink-0`} />
-                    <span className={`font-mono font-bold text-[11px] ${colors.text}`}>
-                      {account.id}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-0.5 pl-3.5">
-                    <span className="text-[10.5px] font-medium text-slate-500 truncate">
-                      {account.label}
-                    </span>
-                    <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
     </div>

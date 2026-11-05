@@ -96,9 +96,18 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
     }
 
     const fullPin = pinDigits.join('');
-    if (uploadMode === 'pin' && fullPin.length !== 6) {
-      setStatusMessage({ type: 'error', text: 'Protection PIN must be exactly 6 characters.' });
-      return;
+    if (uploadMode === 'pin') {
+      if (fullPin.length !== 6) {
+        setStatusMessage({ type: 'error', text: 'Protection PIN must be exactly 6 characters.' });
+        return;
+      }
+      if (!/[a-zA-Z]/.test(fullPin) || !/[0-9]/.test(fullPin)) {
+        setStatusMessage({
+          type: 'error',
+          text: 'Protection PIN must contain at least 1 letter and 1 number (e.g. 12569c or aserc2).'
+        });
+        return;
+      }
     }
 
     setIsUploading(true);
@@ -286,9 +295,14 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
             {/* 6-Character PIN Input Box */}
             {uploadMode === 'pin' && (
               <div className="space-y-2 pt-2 border-t border-slate-200">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 tracking-wider uppercase">
-                  <LockKeyhole className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span>6-Character Protection PIN</span>
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 tracking-wider uppercase">
+                  <div className="flex items-center gap-1.5">
+                    <LockKeyhole className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span>6-Character Protection PIN</span>
+                  </div>
+                  <span className="text-[10px] lowercase text-slate-400 font-normal">
+                    1 letter & 1 number min
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-6 gap-2 pt-1">
