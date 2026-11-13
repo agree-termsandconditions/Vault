@@ -24,6 +24,7 @@ import {
   Globe,
   FileBadge,
   Sparkles,
+  Plus,
 } from 'lucide-react';
 
 interface RepositoryCardProps {
@@ -999,6 +1000,19 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                 <List className="w-3.5 h-3.5 stroke-[2.2] shrink-0" />
               </button>
             </div>
+
+            {/* Prominent Add Note Button */}
+            {onOpenUpload && (
+              <button
+                type="button"
+                onClick={onOpenUpload}
+                className="h-9 px-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-xs inline-flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                title="Add a new study note, upload file, or share website link"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Add New Note</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -1061,12 +1075,26 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
           </button>
         </div>
       ) : filteredFiles.length === 0 && !isFiltering ? (
-        <div className="text-center py-16 text-slate-500 text-xs space-y-3 flex flex-col items-center">
-          <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
-            <span className="material-symbols-outlined text-[28px]">folder_open</span>
+        <div className="text-center py-16 text-slate-500 text-xs space-y-4 flex flex-col items-center">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 shadow-2xs">
+            <span className="material-symbols-outlined text-[32px]">folder_open</span>
           </div>
-          <p className="text-slate-900 font-bold text-sm">No notes pinned yet</p>
-          <p className="text-slate-500">Pin your first study note or share a website link to get started.</p>
+          <div className="space-y-1">
+            <p className="text-slate-900 font-extrabold text-base">No notes pinned yet</p>
+            <p className="text-slate-500 text-xs max-w-sm">
+              Pin your first study note, encrypted document, or shared website link to get started.
+            </p>
+          </div>
+          {onOpenUpload && (
+            <button
+              type="button"
+              onClick={onOpenUpload}
+              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 inline-flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Add New Note</span>
+            </button>
+          )}
         </div>
       ) : filteredFiles.length === 0 && isFiltering ? (
         <div className="text-center py-16 text-slate-500 text-xs space-y-3 flex flex-col items-center">
