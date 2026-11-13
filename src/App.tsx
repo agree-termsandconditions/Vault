@@ -1,18 +1,14 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Clock, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { VaultFile, DEFAULT_DEPARTMENTS, DepartmentConfig } from './types';
 import { Header } from './components/Header';
 import { UploadWizardModal } from './components/UploadWizardModal';
 import { RepositoryCard } from './components/RepositoryCard';
 import { FileModal } from './components/FileModal';
+import { AdminDashboardView } from './components/AdminDashboardView';
 import { LoginModal } from './components/LoginModal';
 import { FoxxyChatbot } from './components/FoxxyChatbot';
 import { ShareLinkModal } from './components/ShareLinkModal';
 import { HelpGuideModal } from './components/HelpGuideModal';
-
-const AdminDashboardView = lazy(() =>
-  import('./components/AdminDashboardView').then((m) => ({ default: m.AdminDashboardView }))
-);
 
 export default function App() {
   const isStoredSessionActive = (): boolean => {
@@ -157,18 +153,18 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     const token = localStorage.getItem('vault_session_token');
-    if (token) {
-      fetch('/api/auth/logout', {
+    try {
+      await fetch('/api/auth/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}),
         },
-        body: JSON.stringify({ token })
-      }).catch(() => {});
-    }
+        body: JSON.stringify({ token }),
+      });
+    } catch (_e) {}
 
     setIsLoggedIn(false);
     setIsAdmin(false);
@@ -179,22 +175,13 @@ export default function App() {
     setUserDepartment('Science');
     setActiveTab('repository');
     setSessionExpiresAt(null);
+    setSelectedFile(null);
+    setShowUploadWizard(false);
+    setShowLoginModal(false);
 
-    // Thoroughly purge all stored auth tokens and user data
-    localStorage.removeItem('vault_logged_in');
-    localStorage.removeItem('vault_session_token');
-    localStorage.removeItem('vault_is_admin');
-    localStorage.removeItem('vault_is_master_admin');
-    localStorage.removeItem('vault_is_superuser');
-    localStorage.removeItem('vault_current_user');
-    localStorage.removeItem('vault_user_role');
-    localStorage.removeItem('vault_user_department');
-    localStorage.removeItem('vault_session_expires_at');
-    localStorage.removeItem('vault_active_tab');
-
-    try {
-      sessionStorage.clear();
-    } catch {}
+    // Thorough purge of all local storage and session storage
+    localStorage.clear();
+    sessionStorage.clear();
   };
 
   // Institutional Terminal Security: In-browser session timeout after 15 minutes
@@ -205,18 +192,6 @@ export default function App() {
       const now = Date.now();
       if (now >= sessionExpiresAt) {
         clearInterval(interval);
-        const token = localStorage.getItem('vault_session_token');
-        if (token) {
-          fetch('/api/auth/logout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ token })
-          }).catch(() => {});
-        }
-
         // Clear stored session state immediately
         setIsLoggedIn(false);
         setIsAdmin(false);
@@ -237,10 +212,6 @@ export default function App() {
         localStorage.removeItem('vault_user_department');
         localStorage.removeItem('vault_session_expires_at');
         localStorage.removeItem('vault_active_tab');
-
-        try {
-          sessionStorage.clear();
-        } catch {}
 
         // Show in-browser session expired overlay with blurred page
         setShowSessionExpiredModal(true);
@@ -277,39 +248,35 @@ export default function App() {
             files={files}
             onSelectFile={handleSelectFile}
             onRefresh={fetchVaultFiles}
-            onOpenUpload={isLoggedIn ? () => setShowUploadWizard(true) : undefined}
+            onOpenUpload={() => {
+              if (!isLoggedIn) {
+                setShowLoginModal(true);
+              } else {
+                setShowUploadWizard(true);
+              }
+            }}
             isAdmin={isAdmin}
-            isLoggedIn={isLoggedIn}
           />
         )}
 
         {(activeTab === 'admin' || activeTab === 'security' || activeTab === 'team' || activeTab === 'activity') && (
-          <Suspense
-            fallback={
-              <div className="flex flex-col items-center justify-center p-16 text-slate-500 space-y-3">
-                <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Loading Management Console...</p>
-              </div>
+          <AdminDashboardView
+            files={files}
+            isMasterAdmin={isMasterAdmin}
+            currentUser={currentUser}
+            initialSection={
+              activeTab === 'security'
+                ? 'security'
+                : activeTab === 'team'
+                ? 'team'
+                : activeTab === 'activity'
+                ? 'activity'
+                : 'overview'
             }
-          >
-            <AdminDashboardView
-              files={files}
-              isMasterAdmin={isMasterAdmin}
-              currentUser={currentUser}
-              initialSection={
-                activeTab === 'security'
-                  ? 'security'
-                  : activeTab === 'team'
-                  ? 'team'
-                  : activeTab === 'activity'
-                  ? 'activity'
-                  : 'overview'
-              }
-              onSelectFile={handleSelectFile}
-              onRefreshFiles={fetchVaultFiles}
-              onBackToRepository={() => setActiveTab('repository')}
-            />
-          </Suspense>
+            onSelectFile={handleSelectFile}
+            onRefreshFiles={fetchVaultFiles}
+            onBackToRepository={() => setActiveTab('repository')}
+          />
         )}
       </div>
 
@@ -342,7 +309,7 @@ export default function App() {
 
             {/* Circular warning icon */}
             <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-4 text-amber-600 shadow-inner">
-              <Clock className="w-8 h-8 text-amber-600" />
+              <span className="material-symbols-outlined text-3xl">timer_off</span>
             </div>
 
             {/* Modal Title */}
@@ -365,7 +332,7 @@ export default function App() {
               className="w-full py-3 px-5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-600/25 transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Continue as Visitor</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className="material-symbols-outlined text-lg">arrow_forward</span>
             </button>
           </div>
         </div>

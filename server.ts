@@ -7,7 +7,6 @@ import os from "os";
 import { execSync } from "child_process";
 import crypto from "crypto";
 import multer from "multer";
-import compression from "compression";
 import dotenv from "dotenv";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
@@ -18,19 +17,20 @@ const PORT = Number(process.env.PORT) || 443;
 
 // Institutional Security: Disable fingerprinting & apply baseline HTTP security headers
 app.disable("x-powered-by");
-app.use(compression());
-app.use((req, res, next) => {
+app.use((_req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  // For all API and auth requests, forbid browser caching so credentials and tokens are never persisted
-  if (req.path.startsWith("/api/")) {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-  }
+  next();
+});
+
+// Cache Busting & Anti-Credential Leakage Middleware for API endpoints
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   next();
 });
 
@@ -392,6 +392,33 @@ function isAdminMasterPassword(candidatePin: string): boolean {
   return false;
 }
 
+// Uploader Account Password Validator (Verifies candidate password against uploader's hashed account password)
+function isUploaderPassword(file: any, candidateSecret: string): boolean {
+  const clean = String(candidateSecret || "").trim();
+  if (!clean || !file) return false;
+
+  const uploaderId = String(file.uploaded_by_emp_id || "").toLowerCase();
+  const uploaderName = String(file.uploader_name || "").toLowerCase();
+
+  const uploaderEmp = employees.find(e => {
+    const eIdLower = e.emp_id.toLowerCase();
+    const eNameLower = e.full_name.toLowerCase();
+    const eEmailLower = e.email.toLowerCase();
+    return eIdLower === uploaderId || eNameLower === uploaderName || eEmailLower === uploaderId;
+  });
+
+  if (uploaderEmp) {
+    if (uploaderEmp.password_hash && verifySecret(clean, uploaderEmp.password_hash, uploaderEmp.password_salt)) {
+      return true;
+    }
+    if (uploaderEmp.quick_pin_hash && verifySecret(clean, uploaderEmp.quick_pin_hash, uploaderEmp.quick_pin_salt)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // Active Authenticated Sessions Store (15-Minute Institutional Lifetime)
 interface ActiveSession {
   token: string;
@@ -483,10 +510,7 @@ function getSessionFromRequest(req: any): ActiveSession | null {
 function requireAuth(req: any, res: any, next: any) {
   const session = getSessionFromRequest(req);
   if (!session) {
-    return res.status(401).json({
-      success: false,
-      error: "Authentication required. Guest/public users have view and download access only. Please sign in to upload."
-    });
+    return res.status(401).json({ success: false, error: "Authentication required. Please sign in." });
   }
   req.user = session;
   next();
@@ -1509,8 +1533,8 @@ function isValidProtectionPin(pin: unknown): { valid: boolean; error?: string } 
   return { valid: true };
 }
 
-// Upload Files API (Protected: Requires Authenticated Account; Guest users have view & download only)
-app.post("/api/upload", uploadRateLimiter, requireAuth, (req, res) => {
+// Upload Files API (Enforces 3-Step Real-Time Magic Byte Inspection & Rate Limiting)
+app.post("/api/upload", uploadRateLimiter, (req, res) => {
   upload.array("files")(req, res, (multerErr) => {
     if (multerErr) {
       return res.status(400).json({
@@ -1524,11 +1548,11 @@ app.post("/api/upload", uploadRateLimiter, requireAuth, (req, res) => {
       const isPasswordless = req.body.is_passwordless === "true" || req.body.upload_type === "passwordless";
       const pin = String(req.body.pin || "").trim();
       const dept = String(req.body.department || "Science").trim();
-      const session = (req as any).user || getSessionFromRequest(req);
+      const session = getSessionFromRequest(req);
       if (!session) {
         return res.status(401).json({
           success: false,
-          error: "Authentication required. Guest/public users have view and download access only. Please sign in to upload."
+          error: "Authentication required: Only authenticated faculty and members can upload files. Please sign in."
         });
       }
       const uploaderEmpId = session.emp_id;
@@ -1665,18 +1689,34 @@ app.post("/api/upload", uploadRateLimiter, requireAuth, (req, res) => {
   });
 });
 
-// Share Web Link API (Protected: Requires Authenticated Account; Guest users have view & download only)
-app.post("/api/links", uploadRateLimiter, requireAuth, (req, res) => {
-  try {
-    const session = (req as any).user || getSessionFromRequest(req);
-    if (!session) {
-      return res.status(401).json({
-        success: false,
-        error: "Authentication required. Guest/public users have view and download access only. Please sign in to share links."
-      });
-    }
+// User Logout API (Revokes active session, purges server memory & emits Clear-Site-Data header)
+app.post("/api/auth/logout", (req, res) => {
+  const session = getSessionFromRequest(req);
+  const rawToken = req.headers["x-session-token"] || 
+    (req.headers.authorization && req.headers.authorization.replace(/^Bearer\s+/i, "")) ||
+    req.body?.token;
 
-    const { url, title, description, department, tags, is_passwordless, pin } = req.body;
+  if (rawToken) {
+    const cleanToken = String(rawToken).trim();
+    activeSessions.delete(cleanToken);
+    saveSessions();
+  }
+
+  const actor = session ? session.emp_id : "USER";
+  addAuditLog("AUTH_LOGOUT", actor, "-", "SUCCESS", "User session terminated; server session destroyed.");
+
+  res.setHeader("Clear-Site-Data", '"cache", "cookies", "storage"');
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  return res.json({ success: true, message: "Logged out successfully. All session tokens and cache invalidated." });
+});
+
+// Share Web Link API (Rate Limited & Origin Sanitized)
+app.post("/api/links", uploadRateLimiter, (req, res) => {
+  try {
+    const { url, title, description, department, tags, is_passwordless, pin, uploader, uploaderEmpId } = req.body;
 
     if (!url || !title) {
       return res.status(400).json({ success: false, error: "Website URL and Title are required." });
@@ -1693,7 +1733,7 @@ app.post("/api/links", uploadRateLimiter, requireAuth, (req, res) => {
       containsRestrictedAdultContent(title) ||
       containsRestrictedAdultContent(description)
     ) {
-      addAuditLog("LINK_SAFETY_BLOCK", session.emp_id, title, "BLOCKED", "Blocked prohibited adult/pornographic web link.");
+      addAuditLog("LINK_SAFETY_BLOCK", uploaderEmpId || "USER", title, "BLOCKED", "Blocked prohibited adult/pornographic web link.");
       return res.status(403).json({
         success: false,
         error: "Campus Student Safety Policy: Pornographic, sexually explicit, or adult web links are strictly prohibited."
@@ -1730,6 +1770,13 @@ app.post("/api/links", uploadRateLimiter, requireAuth, (req, res) => {
       encryptedStorage = encrypted.toString("hex");
     }
 
+    const session = getSessionFromRequest(req);
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required: Only authenticated faculty and members can pin links. Please sign in."
+      });
+    }
     const effectiveUploaderEmpId = session.emp_id;
     const effectiveUploader = session.full_name;
 
@@ -2103,9 +2150,9 @@ app.get("/api/preview/:file_id", decryptRateLimiter, (req, res) => {
   return res.send(decryptedBuffer);
 });
 
-// Delete File API (Strict Authorization & BOLA Protection)
+// Delete File API (Strict Authorization: Requires Uploader Account Password or Admin Master Password)
 app.post("/api/delete", (req, res) => {
-  const { file_id, pin } = req.body;
+  const { file_id, pin, password } = req.body;
   const file = vaultFiles.find(f => f.id === Number(file_id));
 
   if (!file || file.is_deleted) {
@@ -2113,28 +2160,32 @@ app.post("/api/delete", (req, res) => {
   }
 
   const session = getSessionFromRequest(req);
-  if (!session) {
-    return res.status(401).json({ success: false, error: "Authentication required. Please sign in to delete files." });
-  }
+  const suppliedSecret = String(password || pin || "").trim();
 
-  const isAdmin = session.is_admin || session.is_master_admin;
-  const isOwner = session.emp_id === file.uploaded_by_emp_id;
+  // Verification 1: Active Admin / Master Admin Session
+  const hasAdminSession = Boolean(session && (session.is_admin || session.is_master_admin));
 
-  if (!isAdmin && !isOwner) {
-    addAuditLog("DELETE_DENIED", session.emp_id, file.original_name, "BLOCKED", "Unauthorized attempt to delete a file owned by another user.");
-    return res.status(403).json({
+  // Verification 2: Admin Master Password entered
+  const hasAdminPassword = isAdminMasterPassword(suppliedSecret);
+
+  // Verification 3: Uploader Account Password entered
+  const hasUploaderPassword = isUploaderPassword(file, suppliedSecret);
+
+  // Verification 4: Active session of the actual uploader
+  const hasUploaderSession = Boolean(session && session.emp_id.toLowerCase() === String(file.uploaded_by_emp_id || "").toLowerCase());
+
+  // Rule: Non-logged in users MUST enter the uploader account password or admin password.
+  // Logged-in admin can delete via session or password.
+  // Logged-in uploader can delete via their password or verified owner session.
+  const isAuthorized = hasAdminSession || hasAdminPassword || hasUploaderPassword || (hasUploaderSession && (hasUploaderPassword || suppliedSecret === "PWDLESS_PUBLIC" || !suppliedSecret));
+
+  if (!isAuthorized) {
+    const actorId = session ? session.emp_id : "GUEST";
+    addAuditLog("DELETE_DENIED", actorId, file.original_name, "BLOCKED", "Deletion denied: Missing or invalid uploader account password or admin password.");
+    return res.status(401).json({
       success: false,
-      error: "Access Denied: You do not have permission to delete this file."
+      error: "Deletion failed: You must enter the uploader's account password or the Admin Master password."
     });
-  }
-
-  if (!isAdmin && !file.is_passwordless) {
-    const suppliedPin = String(pin || "").trim();
-    const test = decryptVaultFileBuffer(file, suppliedPin);
-    if (!test) {
-      addAuditLog("DELETE_FAILED", session.emp_id, file.original_name, "FAILED", "Incorrect file PIN supplied during deletion.");
-      return res.status(401).json({ success: false, error: "Incorrect Protection PIN. Deletion authorization failed." });
-    }
   }
 
   file.is_deleted = true;
@@ -2142,7 +2193,8 @@ app.post("/api/delete", (req, res) => {
     try { fs.unlinkSync(file.storage_path); } catch (_e) {}
   }
 
-  addAuditLog("DELETE_FILE", session.emp_id, file.original_name, "SUCCESS", "File record removed from vault storage.");
+  const actor = hasAdminSession ? session!.emp_id : (hasAdminPassword ? "ADMIN" : (session ? session.emp_id : file.uploaded_by_emp_id || "UPLOADER"));
+  addAuditLog("DELETE_FILE", actor, file.original_name, "SUCCESS", "File record removed from vault storage with verified authorization.");
   res.json({ success: true, message: "File deleted successfully." });
 });
 
@@ -3410,22 +3462,28 @@ app.post("/api/auth/login", authRateLimiter, (req, res) => {
   });
 });
 
-// User Logout API: Invalidate server-side active session and enforce zero-cache headers
+// User Logout API (Revokes active session, purges server memory & emits Clear-Site-Data header)
 app.post("/api/auth/logout", (req, res) => {
-  const token =
-    req.headers["x-session-token"] ||
+  const session = getSessionFromRequest(req);
+  const rawToken = req.headers["x-session-token"] || 
     (req.headers.authorization && req.headers.authorization.replace(/^Bearer\s+/i, "")) ||
     req.body?.token;
-  if (token && typeof token === "string" && activeSessions.has(token.trim())) {
-    const sess = activeSessions.get(token.trim());
-    addAuditLog("AUTH_LOGOUT", sess?.emp_id || "USER", "-", "SUCCESS", "User session explicitly revoked.");
-    activeSessions.delete(token.trim());
+
+  if (rawToken) {
+    const cleanToken = String(rawToken).trim();
+    activeSessions.delete(cleanToken);
     saveSessions();
   }
+
+  const actor = session ? session.emp_id : "USER";
+  addAuditLog("AUTH_LOGOUT", actor, "-", "SUCCESS", "User session terminated; server session destroyed.");
+
+  res.setHeader("Clear-Site-Data", '"cache", "cookies", "storage"');
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
-  res.json({ success: true, message: "Logged out successfully and session purged." });
+
+  return res.json({ success: true, message: "Logged out successfully. All session tokens and cache invalidated." });
 });
 
 // Input Security Validator for Vulnerability, Exploitation & Anti-Pornography Student Safety
@@ -3981,16 +4039,8 @@ async function startServer() {
     });
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    // Cache hashed assets for 1 year (immutable); cache HTML with no-cache so updates are immediately picked up
-    app.use("/assets", express.static(path.join(distPath, "assets"), {
-      maxAge: "1y",
-      immutable: true
-    }));
-    app.use(express.static(distPath, {
-      maxAge: "1h"
-    }));
+    app.use(express.static(distPath));
     app.get("*", (_req, res) => {
-      res.setHeader("Cache-Control", "no-cache");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }

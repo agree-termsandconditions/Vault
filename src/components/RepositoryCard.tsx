@@ -24,16 +24,6 @@ import {
   Globe,
   FileBadge,
   Sparkles,
-  Plus,
-  MoreVertical,
-  ExternalLink,
-  Copy,
-  Download,
-  Info,
-  Trash2,
-  ShieldAlert,
-  SearchX,
-  FilePlus,
 } from 'lucide-react';
 
 interface RepositoryCardProps {
@@ -42,7 +32,6 @@ interface RepositoryCardProps {
   onRefresh: () => void;
   onOpenUpload?: () => void;
   isAdmin?: boolean;
-  isLoggedIn?: boolean;
 }
 
 interface ColorTheme {
@@ -65,9 +54,23 @@ interface ColorTheme {
   divideBorder: string;
 }
 
-// Clean modern adhesive tape strip
+// Realistic Frosted Adhesive Tape with Finer Custom Zigzag (Serrated) Cuts at Both Top & Bottom Edges
 const SerratedFrostedTape: React.FC = () => (
-  <div className="frosted-tape" aria-hidden="true" />
+  <div className="frosted-tape" aria-hidden="true">
+    <svg
+      viewBox="0 0 100 32"
+      preserveAspectRatio="none"
+      className="w-full h-full block"
+    >
+      <polygon
+        points="0,3.5 4,0 8,3.5 12,0 16,3.5 20,0 24,3.5 28,0 32,3.5 36,0 40,3.5 44,0 48,3.5 52,0 56,3.5 60,0 64,3.5 68,0 72,3.5 76,0 80,3.5 84,0 88,3.5 92,0 96,3.5 100,0 100,28.5 96,32 92,28.5 88,32 84,28.5 80,32 76,28.5 72,32 68,28.5 64,32 60,28.5 56,32 52,28.5 48,32 44,28.5 40,32 36,28.5 32,32 28,28.5 24,32 20,28.5 16,32 12,28.5 8,32 4,28.5 0,32"
+        fill="none"
+        stroke="rgba(0, 0, 0, 0.22)"
+        strokeWidth="1.3"
+        strokeLinejoin="miter"
+      />
+    </svg>
+  </div>
 );
 
 // Professional Shield-Lock Icon for Protected Badge
@@ -479,6 +482,7 @@ export const openMaskedFileInBrowser = async (
   pin: string = 'PWDLESS_PUBLIC',
   fileName?: string
 ) => {
+  // Open window immediately synchronously to prevent browser popup blockers
   const newTab = window.open('about:blank', '_blank');
   try {
     const res = await fetch(`/api/preview/${fileId}?pin=${encodeURIComponent(pin)}`);
@@ -487,8 +491,8 @@ export const openMaskedFileInBrowser = async (
       const blobUrl = URL.createObjectURL(blob);
       if (newTab) {
         const title = (fileName || 'Vault Document Preview').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] || m));
-        const isImg = /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(fileName || '') || blob.type.startsWith('image/');
         try {
+          // Masks the browser address bar to show only the domain origin without path or blob uuid
           newTab.history.replaceState(null, title, window.location.origin);
         } catch {}
 
@@ -499,6 +503,7 @@ export const openMaskedFileInBrowser = async (
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${title}</title>
+  <link rel="icon" href="/vite.svg">
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -506,77 +511,19 @@ export const openMaskedFileInBrowser = async (
       padding: 0;
       width: 100vw;
       height: 100vh;
-      background: #090d16;
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .topbar {
-      height: 52px;
-      background: rgba(15, 23, 42, 0.95);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      z-index: 50;
-      flex-shrink: 0;
-    }
-    .fname {
-      font-size: 13px;
-      font-weight: 600;
-      color: #e2e8f0;
-      max-width: 70%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .btn {
-      background: #2563eb;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 8px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn:hover { background: #1d4ed8; }
-    .viewer {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: auto;
-      padding: 20px;
-    }
-    img {
-      max-width: 95vw;
-      max-height: calc(100vh - 92px);
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: #0f172a;
     }
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="fname">${title}</div>
-    <a href="${blobUrl}" download="${title}" class="btn">Download</a>
-  </div>
-  <div class="viewer">
-    ${isImg ? `<img src="${blobUrl}" alt="${title}" />` : `<iframe src="${blobUrl}"></iframe>`}
-  </div>
+  <iframe src="${blobUrl}" allowfullscreen></iframe>
 </body>
 </html>`);
         newTab.document.close();
@@ -744,9 +691,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
   onSelectFile,
   onOpenUpload,
   isAdmin = false,
-  isLoggedIn = false,
 }) => {
-  const isUploadAllowed = Boolean(isLoggedIn && onOpenUpload);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -1054,19 +999,6 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                 <List className="w-3.5 h-3.5 stroke-[2.2] shrink-0" />
               </button>
             </div>
-
-            {/* Prominent Add Note Button (Restricted to logged-in faculty/admin accounts; Guests have view & download only) */}
-            {isUploadAllowed && (
-              <button
-                type="button"
-                onClick={onOpenUpload}
-                className="h-9 px-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-xs inline-flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                title="Add a new study note, upload file, or share website link"
-              >
-                <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span>Add New Note</span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -1113,7 +1045,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
       {isSearchRestricted ? (
         <div className="text-center py-14 px-4 bg-rose-50/70 border border-rose-200 rounded-2xl text-xs space-y-2.5 flex flex-col items-center">
           <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-700">
-            <ShieldAlert className="w-6 h-6 text-rose-600" />
+            <span className="material-symbols-outlined text-[24px]">gpp_bad</span>
           </div>
           <p className="text-rose-950 font-extrabold text-sm">
             Campus Student Safety Policy — Restricted Search Blocked
@@ -1129,33 +1061,17 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
           </button>
         </div>
       ) : filteredFiles.length === 0 && !isFiltering ? (
-        <div className="text-center py-16 text-slate-500 text-xs space-y-4 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 shadow-2xs">
-            <FolderOpen className="w-8 h-8 text-blue-600" />
+        <div className="text-center py-16 text-slate-500 text-xs space-y-3 flex flex-col items-center">
+          <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
+            <span className="material-symbols-outlined text-[28px]">folder_open</span>
           </div>
-          <div className="space-y-1">
-            <p className="text-slate-900 font-extrabold text-base">No notes pinned yet</p>
-            <p className="text-slate-500 text-xs max-w-sm">
-              {isLoggedIn
-                ? 'Pin your first study note, encrypted document, or shared website link to get started.'
-                : 'Faculty and staff will post study notes and learning materials here for public view and download.'}
-            </p>
-          </div>
-          {isUploadAllowed && (
-            <button
-              type="button"
-              onClick={onOpenUpload}
-              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 inline-flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Add New Note</span>
-            </button>
-          )}
+          <p className="text-slate-900 font-bold text-sm">No notes pinned yet</p>
+          <p className="text-slate-500">Pin your first study note or share a website link to get started.</p>
         </div>
       ) : filteredFiles.length === 0 && isFiltering ? (
         <div className="text-center py-16 text-slate-500 text-xs space-y-3 flex flex-col items-center">
           <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-            <SearchX className="w-7 h-7 text-slate-400" />
+            <span className="material-symbols-outlined text-[28px]">search_off</span>
           </div>
           <p className="text-slate-900 font-bold text-sm">No matching notes found</p>
           <p className="text-slate-500">
@@ -1183,20 +1099,20 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
         <main
           className="grid grid-cols-[repeat(auto-fill,minmax(148px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(154px,1fr))] 2xl:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-3 xl:gap-x-3.5 2xl:gap-x-4 gap-y-4 xl:gap-y-4.5 2xl:gap-y-5 pt-3 pb-4 overflow-x-hidden"
         >
-          {/* 1. Pin New Note Card (Restricted to logged-in faculty/admin accounts; Guests have view & download only) */}
-          {isUploadAllowed && (
+          {/* 1. Pin New Note Card */}
+          {onOpenUpload && (
             <div
               onClick={onOpenUpload}
-              className="sticky-card border-2 border-dashed border-blue-400 bg-white hover:bg-blue-50/60 flex flex-col items-center justify-center p-3 text-center cursor-pointer group"
+              className="sticky-card border-2 border-dashed border-blue-400 bg-white hover:bg-blue-50/60 flex flex-col items-center justify-center p-2.5 sm:p-3 lg:p-2.5 xl:p-3 2xl:p-3 text-center cursor-pointer group"
             >
               <SerratedFrostedTape />
-              <div className="w-8 h-8 rounded-xl bg-blue-100 group-hover:bg-blue-200 text-blue-700 flex items-center justify-center mb-1.5 transition-transform duration-200 group-hover:scale-110 shadow-2xs border border-blue-200/80">
-                <FilePlus className="w-5 h-5 text-blue-600" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-100 group-hover:bg-blue-200 text-blue-700 flex items-center justify-center mb-1.5 transition-transform duration-200 group-hover:scale-110 shadow-2xs border border-blue-200/80">
+                <span className="material-symbols-outlined text-[18px] sm:text-[19px] leading-none">note_add</span>
               </div>
-              <p className="font-bold text-slate-900 text-[14px] leading-tight mb-1 group-hover:text-blue-700 transition-colors">
+              <p className="font-hand font-bold text-slate-950 text-[17px] sm:text-[18px] leading-tight mb-0.5 group-hover:text-blue-700 transition-colors">
                 Pin New Note
               </p>
-              <p className="text-[10px] text-slate-500 font-medium max-w-[125px] leading-snug">
+              <p className="text-[9px] text-slate-600 font-medium max-w-[125px] leading-snug">
                 Upload DOCX, XLSX, PPTX, PDF, images or links
               </p>
             </div>
@@ -1233,18 +1149,18 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                 }}
                 className={`sticky-card ${theme.cardBg} ${
                   isMenuOpen ? 'z-40' : 'z-10'
-                } flex flex-col justify-between p-3 select-none group`}
+                } flex flex-col justify-between p-2.5 sm:p-3 lg:p-2.5 xl:p-3 2xl:p-3 select-none group`}
               >
-                {/* Clean Translucent Tape Strip */}
+                {/* Realistic Frosted Adhesive Tape Strip with Custom Zigzag (Serrated) Cuts at Both Top and Bottom Edges */}
                 <SerratedFrostedTape />
 
                 {/* Top paper adhesive sheen */}
                 <div className="adhesive-strip absolute top-0 left-0 right-0 h-[22%]" aria-hidden="true" />
 
-                {/* Top Header Row: File Type Badge + 3-Dots Menu */}
+                {/* Top Header Row: File Type Badge + 3-Dots Menu (z-30 so dropdown sits cleanly above title & tags) */}
                 <div className="relative z-30 flex items-center justify-between gap-1 pt-0.5">
                   <span
-                    className={`pl-1.5 pr-2 py-0.5 rounded-md font-bold text-[10px] leading-none ${theme.badgeBg} ${theme.badgeText} border ${theme.badgeBorder} inline-flex items-center gap-1 shadow-2xs`}
+                    className={`pl-1.5 pr-2 py-0.5 rounded-sm font-extrabold text-[9px] xl:text-[9.5px] 2xl:text-[9.5px] leading-none ${theme.badgeBg} ${theme.badgeText} border ${theme.badgeBorder} inline-flex items-center gap-1 shadow-2xs`}
                   >
                     <FileTypeCustomIcon iconKey={theme.iconKey} className="w-3 h-3 shrink-0" />
                     <span className="leading-none tracking-tight">{extLabel}</span>
@@ -1256,14 +1172,14 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                         e.stopPropagation();
                         setActiveMenuId(isMenuOpen ? null : file.id);
                       }}
-                      className="w-6 h-6 text-slate-800 hover:text-slate-950 transition-colors rounded-md hover:bg-black/10 cursor-pointer relative inline-flex items-center justify-center"
+                      className="w-5 h-5 text-slate-900 hover:text-slate-950 transition-colors rounded-sm hover:bg-black/10 cursor-pointer relative inline-flex items-center justify-center -mr-0.5"
                       title="More options"
                     >
-                      <MoreVertical className="w-3.5 h-3.5" />
+                      <span className="material-symbols-outlined text-[16px] leading-none">more_vert</span>
                     </button>
                   </div>
 
-                  {/* Dropdown Menu */}
+                  {/* Dropdown Menu: Admin gets all 4 options; Public & Users get ONLY Delete */}
                   {isMenuOpen && (
                     <div
                       onClick={(e) => e.stopPropagation()}
@@ -1283,7 +1199,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                                 }}
                                 className="w-full text-left px-2.5 py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                               >
-                                <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                                <span className="material-symbols-outlined text-[16px] text-blue-600">open_in_new</span>
                                 Open Website
                               </button>
                               <button
@@ -1293,7 +1209,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                                 }}
                                 className="w-full text-left px-2.5 py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                               >
-                                <Copy className="w-3.5 h-3.5 text-blue-600" />
+                                <span className="material-symbols-outlined text-[16px] text-blue-600">content_copy</span>
                                 {copiedId === file.id ? 'Copied!' : 'Copy Link URL'}
                               </button>
                             </>
@@ -1311,7 +1227,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                                 }}
                                 className="w-full text-left px-2.5 py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                               >
-                                <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                                <span className="material-symbols-outlined text-[16px] text-blue-600">open_in_new</span>
                                 Open in Browser
                               </button>
                               <button
@@ -1330,7 +1246,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                                 }}
                                 className="w-full text-left px-2.5 py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                               >
-                                <Download className="w-3.5 h-3.5 text-blue-600" />
+                                <span className="material-symbols-outlined text-[16px] text-blue-600">download</span>
                                 Download File
                               </button>
                             </>
@@ -1343,7 +1259,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                             }}
                             className="w-full text-left px-2.5 py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                           >
-                            <Info className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="material-symbols-outlined text-[16px] text-blue-600">info</span>
                             Technical Specs
                           </button>
                           <div className="h-px bg-slate-200 my-1" />
@@ -1355,7 +1271,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                             }}
                             className="w-full text-left px-2.5 py-1.5 font-semibold text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 cursor-pointer"
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
                             Purge Record
                           </button>
                         </>
@@ -1368,7 +1284,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                           }}
                           className="w-full text-left px-2.5 py-1.5 font-semibold text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
                           Delete Note
                         </button>
                       )}
@@ -1377,15 +1293,15 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                 </div>
 
                 {/* Sticky Note Center Content */}
-                <div className="relative z-10 flex-1 flex flex-col justify-start pt-2 min-h-0 overflow-hidden w-full">
+                <div className="relative z-10 flex-1 flex flex-col justify-start pt-2.5 sm:pt-3 xl:pt-3 min-h-0 overflow-hidden w-full">
                   <h3
-                    className="text-[13px] font-bold text-slate-900 leading-snug line-clamp-2 break-words block w-full tracking-tight mb-1"
+                    className="text-[12px] sm:text-[12.5px] xl:text-[13px] 2xl:text-[13px] font-extrabold text-neutral-900 leading-tight truncate whitespace-nowrap overflow-hidden text-ellipsis block w-full tracking-tight mb-0.5"
                     title={fixMojibake(file.original_name)}
                   >
                     <HighlightedText text={file.original_name} query={searchTerm} />
                   </h3>
 
-                  <p className="text-[10px] text-slate-700 font-medium truncate whitespace-nowrap overflow-hidden text-ellipsis block w-full">
+                  <p className="text-[9.5px] xl:text-[10px] 2xl:text-[10px] text-neutral-900/80 font-semibold truncate whitespace-nowrap overflow-hidden text-ellipsis block w-full">
                     {isLink ? (
                       <span>Web Link • {file.uploader_name || 'Campus Member'}</span>
                     ) : (
@@ -1395,12 +1311,12 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                 </div>
 
                 {/* Bottom Section: Non-Interactive #Tag Badges & Status Row */}
-                <div className="relative z-10 w-full pt-1">
+                <div className="relative z-10 w-full">
                   <div className="flex flex-wrap gap-1 mb-1.5 max-h-[34px] overflow-hidden pointer-events-none select-none">
                     {displayTags.map((tag, tIdx) => (
                       <span
                         key={tIdx}
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded-sm border cursor-default select-none shadow-2xs leading-none truncate max-w-[95px] xl:max-w-[105px] ${theme.tagBg} ${theme.tagText} ${theme.tagBorder}`}
+                        className={`text-[8.5px] xl:text-[9px] 2xl:text-[9px] font-extrabold px-1.5 xl:px-2 py-0.5 rounded-xs border cursor-default select-none shadow-2xs leading-none truncate max-w-[95px] xl:max-w-[105px] ${theme.tagBg} ${theme.tagText} ${theme.tagBorder}`}
                       >
                         #<HighlightedText text={tag} query={searchTerm} />
                       </span>
@@ -1411,7 +1327,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                   <div className={`flex items-center justify-between gap-1 pt-1.5 border-t ${theme.divideBorder} w-full min-w-0`}>
                     {!file.is_passwordless ? (
                       <div
-                        className="h-5 px-2 bg-red-600 text-white font-bold text-[9.5px] leading-none rounded-full inline-flex items-center justify-center gap-1 shadow-xs shrink-0 select-none"
+                        className="h-4.5 w-[68px] xl:w-[70px] bg-red-600 text-white font-extrabold text-[8.5px] xl:text-[9px] 2xl:text-[9.5px] leading-none rounded-full inline-flex items-center justify-center gap-1 shadow-xs shrink-0 select-none"
                         title="AES-256 PIN Protected"
                       >
                         <ProtectedShieldLockIcon className="w-3 h-3 shrink-0" />
@@ -1419,7 +1335,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                       </div>
                     ) : (
                       <div
-                        className="h-5 px-2 bg-emerald-600 text-white font-bold text-[9.5px] leading-none rounded-full inline-flex items-center justify-center gap-1 shadow-xs shrink-0 select-none"
+                        className="h-4.5 w-[68px] xl:w-[70px] bg-emerald-600 text-white font-extrabold text-[8.5px] xl:text-[9px] 2xl:text-[9.5px] leading-none rounded-full inline-flex items-center justify-center gap-1 shadow-xs shrink-0 select-none"
                         title="Public Access - No PIN Required"
                       >
                         <PublicGlobeCheckIcon className="w-3 h-3 shrink-0" />
@@ -1428,10 +1344,10 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                     )}
 
                     <div
-                      className="text-[9.5px] font-bold text-slate-800 leading-none inline-flex items-center justify-end gap-1 shrink-0 ml-auto"
-                      title="Automated 48-Hour Rolling Deletion Countdown Timer"
+                      className="text-[8.5px] xl:text-[9px] 2xl:text-[9.5px] font-extrabold text-slate-900 leading-none inline-flex items-center justify-end gap-1 shrink-0 ml-auto"
+                      title="Auto-purges after 48h"
                     >
-                      <Clock className="w-3 h-3 text-slate-800 shrink-0 stroke-[2.2]" />
+                      <Clock className="w-2.5 h-2.5 xl:w-2.5 xl:h-2.5 text-slate-900 shrink-0 stroke-[2.5]" />
                       <span className="leading-none whitespace-nowrap">{hoursLeft}h left</span>
                     </div>
                   </div>

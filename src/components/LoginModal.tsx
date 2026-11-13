@@ -57,15 +57,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   } | null>(null);
 
   useEffect(() => {
-    // Purge any stored credentials from state when opening or closing modal
-    setEmpId('');
-    setPassword('');
-    setShowPassword(false);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    setShowResetModal(false);
-
     if (isOpen) {
+      setEmpId('');
+      setPassword('');
+      setShowPassword(false);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+      setShowResetModal(false);
       fetch('/api/employees')
         .then((r) => r.json())
         .then((d) => {
@@ -74,8 +72,23 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           }
         })
         .catch(() => {});
+    } else {
+      setEmpId('');
+      setPassword('');
+      setShowPassword(false);
+      setErrorMessage(null);
+      setSuccessMessage(null);
     }
   }, [isOpen]);
+
+  const handleClose = () => {
+    setEmpId('');
+    setPassword('');
+    setShowPassword(false);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -156,6 +169,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         setEmpId('');
         setPassword('');
         setShowPassword(false);
+        setErrorMessage(null);
+        setSuccessMessage(null);
         onClose();
         return;
       }
@@ -177,7 +192,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     <div
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !isSubmitting) onClose();
+        if (e.target === e.currentTarget && !isSubmitting) handleClose();
       }}
     >
       <div className="bg-white rounded-2xl w-full max-w-[420px] shadow-2xl relative text-slate-800 overflow-hidden">
@@ -187,7 +202,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
         {/* ─── Close Button ─── */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 w-8 h-8 rounded-full hover:bg-slate-100 transition-all cursor-pointer flex items-center justify-center z-10"
           aria-label="Close login modal"
         >
@@ -243,11 +258,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           )}
 
           {/* ─── Login Form ─── */}
-          <form onSubmit={handleUnifiedLogin} className="space-y-4" autoComplete="off" autoCapitalize="off">
-            {/* Decoy hidden inputs to prevent browsers from autofilling cached credentials */}
-            <input type="text" style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} autoComplete="off" />
-            <input type="password" style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} autoComplete="off" />
-
+          <form onSubmit={handleUnifiedLogin} className="space-y-4" autoComplete="off">
             {/* Employee ID */}
             <div className="space-y-1.5">
               <label className="text-[12.5px] font-bold text-slate-700 flex items-center gap-1.5">
@@ -256,14 +267,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </label>
               <input
                 type="text"
-                name="vault_auth_id_no_cache"
-                id="vault_auth_id_no_cache"
+                name="vault_emp_id_no_cache"
                 autoComplete="off"
-                spellCheck={false}
                 autoCorrect="off"
-                autoCapitalize="off"
-                data-lpignore="true"
-                data-form-type="other"
+                autoCapitalize="none"
+                spellCheck={false}
                 required
                 value={empId}
                 onChange={(e) => {
@@ -298,14 +306,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  name="vault_auth_pass_no_cache"
-                  id="vault_auth_pass_no_cache"
+                  name="vault_pass_no_cache"
                   autoComplete="new-password"
-                  spellCheck={false}
                   autoCorrect="off"
-                  autoCapitalize="off"
-                  data-lpignore="true"
-                  data-form-type="other"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);

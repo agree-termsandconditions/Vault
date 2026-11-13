@@ -90,6 +90,11 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
   };
 
   const handleUploadSubmit = async () => {
+    if (!isLoggedIn) {
+      setStatusMessage({ type: 'error', text: 'Authentication Required: Please sign in to upload files.' });
+      return;
+    }
+
     if (selectedFiles.length === 0) {
       setStatusMessage({ type: 'error', text: 'Please select or drag at least one file to upload.' });
       return;
@@ -121,8 +126,12 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
       formData.append('department', 'IT Dept');
       formData.append('uploader_name', currentUser);
 
+      const token = localStorage.getItem('vault_session_token');
       const res = await fetch('/api/upload', {
         method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}),
+        },
         body: formData,
       });
 

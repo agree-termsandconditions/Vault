@@ -1,13 +1,4 @@
 import React from 'react';
-import {
-  ShieldCheck,
-  HelpCircle,
-  LogIn,
-  LogOut,
-  LayoutGrid,
-  ShieldAlert,
-  Clock,
-} from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
@@ -70,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2.5 group transition-all duration-150 active:scale-95 cursor-pointer select-none"
         >
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-sm shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <ShieldCheck className="w-5 h-5 text-white" />
+            <span className="material-symbols-outlined text-[19px] leading-none">verified_user</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-lg font-extrabold tracking-tight text-slate-900 group-hover:text-blue-700 transition-colors">
@@ -94,7 +85,9 @@ export const Header: React.FC<HeaderProps> = ({
             className="px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50/80 border border-transparent hover:border-blue-200/80 transition-all cursor-pointer text-xs font-bold shadow-2xs"
             title="Help & Documentation — How to Use This Site"
           >
-            <HelpCircle className="w-4 h-4 text-blue-600" />
+            <span className="material-symbols-outlined text-[17px] leading-none text-blue-600">
+              help_outline
+            </span>
             <span className="hidden sm:inline leading-none">Help & Guide</span>
           </button>
 
@@ -113,7 +106,9 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                   title={isOnAdminView ? 'Return to Home / Notes Page' : 'Open Admin Console'}
                 >
-                  {isOnAdminView ? <LayoutGrid className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+                  <span className="material-symbols-outlined text-[16px] leading-none">
+                    {isOnAdminView ? 'grid_view' : 'admin_panel_settings'}
+                  </span>
                   <span className="leading-none">
                     {isOnAdminView ? 'Home / Notes' : 'Admin Console'}
                   </span>
@@ -140,7 +135,9 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                   title={`Institutional Session Timeout: Auto-logout in ${formatTimer(secondsRemaining)} (15-min policy)`}
                 >
-                  <Clock className={`w-3.5 h-3.5 ${secondsRemaining <= 120 ? 'text-rose-600' : 'text-amber-700'}`} />
+                  <span className={`material-symbols-outlined text-[15px] leading-none ${secondsRemaining <= 120 ? 'text-rose-600' : 'text-amber-700'}`}>
+                    schedule
+                  </span>
                   <span className="leading-none tracking-tight">{formatTimer(secondsRemaining)}</span>
                 </div>
               )}
@@ -150,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="border border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-rose-700 p-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer inline-flex items-center justify-center shadow-2xs"
                 title="Logout"
               >
-                <LogOut className="w-4 h-4" />
+                <span className="material-symbols-outlined text-[16px] leading-none">logout</span>
               </button>
             </div>
           ) : (
@@ -158,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onLogin}
               className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-800 font-bold text-xs px-3.5 py-1.5 rounded-xl inline-flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
             >
-              <LogIn className="w-4 h-4 text-blue-600" />
+              <span className="material-symbols-outlined text-[16px] leading-none text-blue-600">login</span>
               <span className="leading-none">Sign In</span>
             </button>
           )}

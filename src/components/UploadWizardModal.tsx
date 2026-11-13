@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DEFAULT_DEPARTMENTS, DepartmentConfig, shortenTag } from '../types';
-import { X, Tag, GraduationCap, Layers, Sparkles, FilePlus, UploadCloud, Link2, Pin, Lock } from 'lucide-react';
+import { X, Tag, GraduationCap, Layers, Sparkles } from 'lucide-react';
 import { ProtectedShieldLockIcon, PublicGlobeCheckIcon } from './RepositoryCard';
 
 interface UploadWizardModalProps {
@@ -18,7 +18,8 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
   isOpen,
   onClose,
   onUploadSuccess,
-  isLoggedIn,
+  isLoggedIn = false,
+  isSuperuser = false,
   currentUser = 'Dr. Meera Nair',
   userDepartment = 'Science',
   onLogin,
@@ -280,6 +281,15 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
     e.preventDefault();
     setStatusMessage(null);
 
+    if (!isLoggedIn) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Authentication Required: Please sign in with your campus account (Akish or test) to upload files or pin links.'
+      });
+      if (onLogin) onLogin();
+      return;
+    }
+
     if (activeTab === 'upload' && selectedFiles.length === 0) {
       setStatusMessage({ type: 'error', text: 'Please select or drag a file to upload first.' });
       return;
@@ -363,15 +373,11 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
         formData.append('tags', JSON.stringify(finalTags));
 
         const token = localStorage.getItem('vault_session_token');
-        const uploadHeaders: Record<string, string> = {};
-        if (token) {
-          uploadHeaders['X-Session-Token'] = token;
-          uploadHeaders['Authorization'] = `Bearer ${token}`;
-        }
-
         const res = await fetch('/api/upload', {
           method: 'POST',
-          headers: uploadHeaders,
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}),
+          },
           body: formData,
         });
 
@@ -423,17 +429,12 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
         };
 
         const token = localStorage.getItem('vault_session_token');
-        const linkHeaders: Record<string, string> = {
-          'Content-Type': 'application/json'
-        };
-        if (token) {
-          linkHeaders['X-Session-Token'] = token;
-          linkHeaders['Authorization'] = `Bearer ${token}`;
-        }
-
         const res = await fetch('/api/links', {
           method: 'POST',
-          headers: linkHeaders,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}),
+          },
           body: JSON.stringify(payload),
         });
 
@@ -466,60 +467,6 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
 
   const currentProtection = activeTab === 'upload' ? uploadProtection : linkProtection;
 
-  if (!isOpen) return null;
-
-  if (!isLoggedIn) {
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-      >
-        <div className="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border border-slate-200 relative overflow-hidden">
-          <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 absolute top-0 left-0 right-0" />
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-3 text-amber-600 shadow-inner">
-            <Lock className="w-7 h-7 text-amber-600" />
-          </div>
-
-          <h3 className="text-lg font-extrabold text-slate-900 tracking-tight mb-1">
-            Sign In Required
-          </h3>
-          <p className="text-xs text-slate-600 leading-relaxed mb-6">
-            Public and guest visitors have view and download access only. To publish study notes or upload files to the repository, please sign in with your campus account.
-          </p>
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onLogin();
-              }}
-              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
-            >
-              Sign In to Upload
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3 bg-slate-900/50 backdrop-blur-xs animate-fadeIn"
@@ -543,7 +490,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
         {/* Compact Modal Header */}
         <div className="flex items-center gap-2.5 mb-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#0e3ec7] text-white flex items-center justify-center shadow-xs shrink-0">
-            <FilePlus className="w-4 h-4" />
+            <span className="material-symbols-outlined text-[18px]">note_add</span>
           </div>
           <div>
             <h2 className="text-base font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -570,7 +517,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <UploadCloud className="w-4 h-4" />
+            <span className="material-symbols-outlined text-[15px]">cloud_upload</span>
             <span>Upload Document / File</span>
           </button>
           <button
@@ -585,11 +532,35 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Link2 className="w-4 h-4" />
+            <span className="material-symbols-outlined text-[15px]">link</span>
             <span>Share Web Link</span>
           </button>
         </div>
 
+        {!isLoggedIn ? (
+          <div className="py-8 px-4 text-center space-y-4 bg-slate-50 border border-slate-200/80 rounded-2xl my-2">
+            <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center mx-auto shadow-sm">
+              <span className="material-symbols-outlined text-2xl">lock</span>
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-slate-900 text-base">Sign In Required to Upload</h3>
+              <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+                Guest visitors have browse and download access. To publish study documents or pin links to the vault, please sign in with your campus account (e.g. <strong>Akish</strong> or <strong>test</strong>).
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (onLogin) onLogin();
+              }}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">login</span>
+              <span>Sign In to Campus Portal</span>
+            </button>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-2.5">
           {/* STEP 1: COMPACT FILE DROPZONE OR WEB LINK INPUTS */}
           {activeTab === 'upload' ? (
@@ -613,7 +584,9 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 className="hidden"
               />
               <div className="flex items-center gap-2.5 min-w-0">
-                <UploadCloud className="w-6 h-6 text-blue-600 shrink-0" />
+                <span className="material-symbols-outlined text-[24px] text-blue-600 shrink-0">
+                  cloud_upload
+                </span>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-800 truncate">
                     {selectedFiles.length > 0
@@ -1023,11 +996,9 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
               disabled={isSubmitting}
               className="px-4 py-1.5 rounded-xl text-xs font-extrabold bg-[#0e3ec7] hover:bg-blue-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              {activeTab === 'upload' ? (
-                <UploadCloud className="w-3.5 h-3.5" />
-              ) : (
-                <Pin className="w-3.5 h-3.5" />
-              )}
+              <span className="material-symbols-outlined text-[15px]">
+                {activeTab === 'upload' ? 'cloud_upload' : 'push_pin'}
+              </span>
               <span>
                 {isSubmitting
                   ? 'Publishing...'
@@ -1038,6 +1009,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

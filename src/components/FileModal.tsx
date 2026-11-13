@@ -270,7 +270,8 @@ export const FileModal: React.FC<FileModalProps> = ({
         },
         body: JSON.stringify({
           file_id: file.id,
-          pin: file.is_passwordless ? 'PWDLESS_PUBLIC' : inputPin.trim(),
+          password: inputPin.trim(),
+          pin: inputPin.trim(),
           token,
         }),
       });
@@ -584,36 +585,46 @@ export const FileModal: React.FC<FileModalProps> = ({
                 handleDelete();
               }}
               className="space-y-4 bg-rose-50/40 border border-rose-200/80 rounded-xl p-4"
+              autoComplete="off"
             >
-              {!file.is_passwordless ? (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                     <ProtectedShieldLockIcon className="w-3.5 h-3.5 text-rose-600" />
-                    Enter Password / PIN to Delete Note
+                    Authorization Required to Delete Note
                   </label>
-                  <input
-                    type="password"
-                    autoFocus
-                    required
-                    placeholder="Enter 6-character PIN"
-                    value={inputPin}
-                    onChange={(e) => setInputPin(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-rose-500"
-                  />
+                  {isAdmin && (
+                    <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-mono font-semibold">
+                      Admin Session
+                    </span>
+                  )}
                 </div>
-              ) : (
-                <p className="text-xs text-slate-600 font-medium">
-                  Are you sure you want to permanently remove <strong>{fixMojibake(file.original_name)}</strong> from the board?
+                <p className="text-[11.5px] text-slate-600 leading-snug">
+                  To prevent unauthorized deletion, enter the <strong>Uploader account password</strong> (uploaded by: <em>{file.uploader_name || file.uploaded_by_emp_id || 'Uploader'}</em>) or the <strong>Admin Master Password</strong>.
                 </p>
-              )}
+                <input
+                  type="password"
+                  name="vault_del_pass_no_cache"
+                  autoFocus
+                  required={!isAdmin}
+                  autoComplete="new-password"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  placeholder={isAdmin ? "Enter Admin password or leave blank to confirm" : "Enter uploader password or admin password"}
+                  value={inputPin}
+                  onChange={(e) => setInputPin(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-rose-500"
+                />
+              </div>
 
               <button
                 type="submit"
-                disabled={isProcessing || (!file.is_passwordless && !inputPin.trim())}
+                disabled={isProcessing || (!isAdmin && !inputPin.trim())}
                 className="w-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>{isProcessing ? 'Deleting...' : 'Delete Note'}</span>
+                <span>{isProcessing ? 'Verifying & Deleting...' : 'Authorize & Delete Note'}</span>
               </button>
             </form>
           )}
