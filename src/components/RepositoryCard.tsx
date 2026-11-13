@@ -42,6 +42,7 @@ interface RepositoryCardProps {
   onRefresh: () => void;
   onOpenUpload?: () => void;
   isAdmin?: boolean;
+  isLoggedIn?: boolean;
 }
 
 interface ColorTheme {
@@ -743,7 +744,9 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
   onSelectFile,
   onOpenUpload,
   isAdmin = false,
+  isLoggedIn = false,
 }) => {
+  const isUploadAllowed = Boolean(isLoggedIn && onOpenUpload);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -1052,8 +1055,8 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
               </button>
             </div>
 
-            {/* Prominent Add Note Button */}
-            {onOpenUpload && (
+            {/* Prominent Add Note Button (Restricted to logged-in faculty/admin accounts; Guests have view & download only) */}
+            {isUploadAllowed && (
               <button
                 type="button"
                 onClick={onOpenUpload}
@@ -1133,10 +1136,12 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
           <div className="space-y-1">
             <p className="text-slate-900 font-extrabold text-base">No notes pinned yet</p>
             <p className="text-slate-500 text-xs max-w-sm">
-              Pin your first study note, encrypted document, or shared website link to get started.
+              {isLoggedIn
+                ? 'Pin your first study note, encrypted document, or shared website link to get started.'
+                : 'Faculty and staff will post study notes and learning materials here for public view and download.'}
             </p>
           </div>
-          {onOpenUpload && (
+          {isUploadAllowed && (
             <button
               type="button"
               onClick={onOpenUpload}
@@ -1178,8 +1183,8 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
         <main
           className="grid grid-cols-[repeat(auto-fill,minmax(148px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(154px,1fr))] 2xl:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-3 xl:gap-x-3.5 2xl:gap-x-4 gap-y-4 xl:gap-y-4.5 2xl:gap-y-5 pt-3 pb-4 overflow-x-hidden"
         >
-          {/* 1. Pin New Note Card */}
-          {onOpenUpload && (
+          {/* 1. Pin New Note Card (Restricted to logged-in faculty/admin accounts; Guests have view & download only) */}
+          {isUploadAllowed && (
             <div
               onClick={onOpenUpload}
               className="sticky-card border-2 border-dashed border-blue-400 bg-white hover:bg-blue-50/60 flex flex-col items-center justify-center p-3 text-center cursor-pointer group"

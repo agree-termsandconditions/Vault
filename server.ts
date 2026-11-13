@@ -483,7 +483,10 @@ function getSessionFromRequest(req: any): ActiveSession | null {
 function requireAuth(req: any, res: any, next: any) {
   const session = getSessionFromRequest(req);
   if (!session) {
-    return res.status(401).json({ success: false, error: "Authentication required. Please sign in." });
+    return res.status(401).json({
+      success: false,
+      error: "Authentication required. Guest/public users have view and download access only. Please sign in to upload."
+    });
   }
   req.user = session;
   next();
@@ -1506,8 +1509,8 @@ function isValidProtectionPin(pin: unknown): { valid: boolean; error?: string } 
   return { valid: true };
 }
 
-// Upload Files API (Enforces 3-Step Real-Time Magic Byte Inspection & Rate Limiting)
-app.post("/api/upload", uploadRateLimiter, (req, res) => {
+// Upload Files API (Protected: Requires Authenticated Account; Guest users have view & download only)
+app.post("/api/upload", uploadRateLimiter, requireAuth, (req, res) => {
   upload.array("files")(req, res, (multerErr) => {
     if (multerErr) {
       return res.status(400).json({
@@ -1521,9 +1524,15 @@ app.post("/api/upload", uploadRateLimiter, (req, res) => {
       const isPasswordless = req.body.is_passwordless === "true" || req.body.upload_type === "passwordless";
       const pin = String(req.body.pin || "").trim();
       const dept = String(req.body.department || "Science").trim();
-      const session = getSessionFromRequest(req);
-      const uploaderEmpId = session ? session.emp_id : "GUEST";
-      const uploader = session ? session.full_name : (String(req.body.uploader_name || "Campus Member").trim().slice(0, 50) || "Campus Member");
+      const session = (req as any).user || getSessionFromRequest(req);
+      if (!session) {
+        return res.status(401).json({
+          success: false,
+          error: "Authentication required. Guest/public users have view and download access only. Please sign in to upload."
+        });
+      }
+      const uploaderEmpId = session.emp_id;
+      const uploader = session.full_name;
 
       let tags = [];
       if (req.body.tags) {
@@ -1656,10 +1665,18 @@ app.post("/api/upload", uploadRateLimiter, (req, res) => {
   });
 });
 
-// Share Web Link API (Rate Limited & Origin Sanitized)
-app.post("/api/links", uploadRateLimiter, (req, res) => {
+// Share Web Link API (Protected: Requires Authenticated Account; Guest users have view & download only)
+app.post("/api/links", uploadRateLimiter, requireAuth, (req, res) => {
   try {
-    const { url, title, description, department, tags, is_passwordless, pin, uploader, uploaderEmpId } = req.body;
+    const session = (req as any).user || getSessionFromRequest(req);
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required. Guest/public users have view and download access only. Please sign in to share links."
+      });
+    }
+
+    const { url, title, description, department, tags, is_passwordless, pin } = req.body;
 
     if (!url || !title) {
       return res.status(400).json({ success: false, error: "Website URL and Title are required." });
@@ -1676,7 +1693,7 @@ app.post("/api/links", uploadRateLimiter, (req, res) => {
       containsRestrictedAdultContent(title) ||
       containsRestrictedAdultContent(description)
     ) {
-      addAuditLog("LINK_SAFETY_BLOCK", uploaderEmpId || "USER", title, "BLOCKED", "Blocked prohibited adult/pornographic web link.");
+      addAuditLog("LINK_SAFETY_BLOCK", session.emp_id, title, "BLOCKED", "Blocked prohibited adult/pornographic web link.");
       return res.status(403).json({
         success: false,
         error: "Campus Student Safety Policy: Pornographic, sexually explicit, or adult web links are strictly prohibited."
@@ -1713,9 +1730,8 @@ app.post("/api/links", uploadRateLimiter, (req, res) => {
       encryptedStorage = encrypted.toString("hex");
     }
 
-    const session = getSessionFromRequest(req);
-    const effectiveUploaderEmpId = session ? session.emp_id : "GUEST";
-    const effectiveUploader = session ? session.full_name : (String(uploader || "Campus Member").trim().slice(0, 50) || "Campus Member");
+    const effectiveUploaderEmpId = session.emp_id;
+    const effectiveUploader = session.full_name;
 
     const linkRecord = {
       id: newId,

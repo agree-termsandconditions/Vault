@@ -277,8 +277,9 @@ export default function App() {
             files={files}
             onSelectFile={handleSelectFile}
             onRefresh={fetchVaultFiles}
-            onOpenUpload={() => setShowUploadWizard(true)}
+            onOpenUpload={isLoggedIn ? () => setShowUploadWizard(true) : undefined}
             isAdmin={isAdmin}
+            isLoggedIn={isLoggedIn}
           />
         )}
 
@@ -376,7 +377,13 @@ export default function App() {
         userRole={`${userDepartment} Dept`}
         isLoggedIn={isLoggedIn}
         onLogin={() => setShowLoginModal(true)}
-        onOpenUploadWizard={() => setShowUploadWizard(true)}
+        onOpenUploadWizard={() => {
+          if (!isLoggedIn) {
+            setShowLoginModal(true);
+          } else {
+            setShowUploadWizard(true);
+          }
+        }}
       />
 
       {/* Upload Wizard Modal */}

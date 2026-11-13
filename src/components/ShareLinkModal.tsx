@@ -43,6 +43,58 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
   if (!isOpen) return null;
 
+  if (!isLoggedIn) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div className="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border border-slate-200 relative overflow-hidden">
+          <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 absolute top-0 left-0 right-0" />
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-3 text-amber-600 shadow-inner">
+            <Lock className="w-7 h-7 text-amber-600" />
+          </div>
+
+          <h3 className="text-lg font-extrabold text-slate-900 tracking-tight mb-1">
+            Sign In Required
+          </h3>
+          <p className="text-xs text-slate-600 leading-relaxed mb-6">
+            Public and guest visitors have view and download access only. To pin web links or publish study materials, please sign in with your campus account.
+          </p>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (onLogin) onLogin();
+              }}
+              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+            >
+              Sign In to Share Link
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const departments = ['IT Dept', 'ENG Dept', 'FIN Dept', 'HR Dept', 'OPS Dept', 'ALL Dept'];
   const suggestedTags = ['Internal', 'Documentation', 'Project', 'Tools', 'Reference', 'Confidential', 'Security'];
 
@@ -132,9 +184,18 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      const token = localStorage.getItem('vault_session_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['X-Session-Token'] = token;
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/links', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           url: trimmedUrl,
           title: trimmedTitle,
