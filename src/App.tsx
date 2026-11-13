@@ -154,6 +154,18 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    const token = localStorage.getItem('vault_session_token');
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ token })
+      }).catch(() => {});
+    }
+
     setIsLoggedIn(false);
     setIsAdmin(false);
     setIsMasterAdmin(false);
@@ -164,6 +176,7 @@ export default function App() {
     setActiveTab('repository');
     setSessionExpiresAt(null);
 
+    // Thoroughly purge all stored auth tokens and user data
     localStorage.removeItem('vault_logged_in');
     localStorage.removeItem('vault_session_token');
     localStorage.removeItem('vault_is_admin');
@@ -174,6 +187,10 @@ export default function App() {
     localStorage.removeItem('vault_user_department');
     localStorage.removeItem('vault_session_expires_at');
     localStorage.removeItem('vault_active_tab');
+
+    try {
+      sessionStorage.clear();
+    } catch {}
   };
 
   // Institutional Terminal Security: In-browser session timeout after 15 minutes
@@ -184,6 +201,18 @@ export default function App() {
       const now = Date.now();
       if (now >= sessionExpiresAt) {
         clearInterval(interval);
+        const token = localStorage.getItem('vault_session_token');
+        if (token) {
+          fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ token })
+          }).catch(() => {});
+        }
+
         // Clear stored session state immediately
         setIsLoggedIn(false);
         setIsAdmin(false);
@@ -204,6 +233,10 @@ export default function App() {
         localStorage.removeItem('vault_user_department');
         localStorage.removeItem('vault_session_expires_at');
         localStorage.removeItem('vault_active_tab');
+
+        try {
+          sessionStorage.clear();
+        } catch {}
 
         // Show in-browser session expired overlay with blurred page
         setShowSessionExpiredModal(true);

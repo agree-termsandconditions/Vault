@@ -57,10 +57,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   } | null>(null);
 
   useEffect(() => {
+    // Purge any stored credentials from state when opening or closing modal
+    setEmpId('');
+    setPassword('');
+    setShowPassword(false);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setShowResetModal(false);
+
     if (isOpen) {
-      setErrorMessage(null);
-      setSuccessMessage(null);
-      setShowResetModal(false);
       fetch('/api/employees')
         .then((r) => r.json())
         .then((d) => {
@@ -148,6 +153,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           isMasterAdmin: Boolean(data.user.isMasterAdmin),
           token: data.token,
         });
+        setEmpId('');
+        setPassword('');
+        setShowPassword(false);
         onClose();
         return;
       }
@@ -235,7 +243,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           )}
 
           {/* ─── Login Form ─── */}
-          <form onSubmit={handleUnifiedLogin} className="space-y-4">
+          <form onSubmit={handleUnifiedLogin} className="space-y-4" autoComplete="off" autoCapitalize="off">
+            {/* Decoy hidden inputs to prevent browsers from autofilling cached credentials */}
+            <input type="text" style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} autoComplete="off" />
+            <input type="password" style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} autoComplete="off" />
+
             {/* Employee ID */}
             <div className="space-y-1.5">
               <label className="text-[12.5px] font-bold text-slate-700 flex items-center gap-1.5">
@@ -244,6 +256,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </label>
               <input
                 type="text"
+                name="vault_auth_id_no_cache"
+                id="vault_auth_id_no_cache"
+                autoComplete="off"
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="off"
+                data-lpignore="true"
+                data-form-type="other"
                 required
                 value={empId}
                 onChange={(e) => {
@@ -278,6 +298,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="vault_auth_pass_no_cache"
+                  id="vault_auth_pass_no_cache"
+                  autoComplete="new-password"
+                  spellCheck={false}
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  data-lpignore="true"
+                  data-form-type="other"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);

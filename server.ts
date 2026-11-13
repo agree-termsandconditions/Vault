@@ -17,12 +17,18 @@ const PORT = Number(process.env.PORT) || 443;
 
 // Institutional Security: Disable fingerprinting & apply baseline HTTP security headers
 app.disable("x-powered-by");
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  // For all API and auth requests, forbid browser caching so credentials and tokens are never persisted
+  if (req.path.startsWith("/api/")) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+  }
   next();
 });
 
@@ -3384,6 +3390,24 @@ app.post("/api/auth/login", authRateLimiter, (req, res) => {
       isMasterAdmin: isEmpMasterAdmin
     }
   });
+});
+
+// User Logout API: Invalidate server-side active session and enforce zero-cache headers
+app.post("/api/auth/logout", (req, res) => {
+  const token =
+    req.headers["x-session-token"] ||
+    (req.headers.authorization && req.headers.authorization.replace(/^Bearer\s+/i, "")) ||
+    req.body?.token;
+  if (token && typeof token === "string" && activeSessions.has(token.trim())) {
+    const sess = activeSessions.get(token.trim());
+    addAuditLog("AUTH_LOGOUT", sess?.emp_id || "USER", "-", "SUCCESS", "User session explicitly revoked.");
+    activeSessions.delete(token.trim());
+    saveSessions();
+  }
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.json({ success: true, message: "Logged out successfully and session purged." });
 });
 
 // Input Security Validator for Vulnerability, Exploitation & Anti-Pornography Student Safety
