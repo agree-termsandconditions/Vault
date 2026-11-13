@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DEFAULT_DEPARTMENTS, DepartmentConfig, shortenTag } from '../types';
-import { X, Tag, GraduationCap, Layers, Sparkles } from 'lucide-react';
+import { X, Tag, GraduationCap, Layers, Sparkles, FilePlus, UploadCloud, Link2, Pin } from 'lucide-react';
 import { ProtectedShieldLockIcon, PublicGlobeCheckIcon } from './RepositoryCard';
 
 interface UploadWizardModalProps {
@@ -470,7 +470,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
         {/* Compact Modal Header */}
         <div className="flex items-center gap-2.5 mb-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#0e3ec7] text-white flex items-center justify-center shadow-xs shrink-0">
-            <span className="material-symbols-outlined text-[18px]">note_add</span>
+            <FilePlus className="w-4 h-4" />
           </div>
           <div>
             <h2 className="text-base font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -497,7 +497,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">cloud_upload</span>
+            <UploadCloud className="w-4 h-4" />
             <span>Upload Document / File</span>
           </button>
           <button
@@ -512,7 +512,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">link</span>
+            <Link2 className="w-4 h-4" />
             <span>Share Web Link</span>
           </button>
         </div>
@@ -540,9 +540,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 className="hidden"
               />
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="material-symbols-outlined text-[24px] text-blue-600 shrink-0">
-                  cloud_upload
-                </span>
+                <UploadCloud className="w-6 h-6 text-blue-600 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-800 truncate">
                     {selectedFiles.length > 0
@@ -952,9 +950,11 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
               disabled={isSubmitting}
               className="px-4 py-1.5 rounded-xl text-xs font-extrabold bg-[#0e3ec7] hover:bg-blue-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[15px]">
-                {activeTab === 'upload' ? 'cloud_upload' : 'push_pin'}
-              </span>
+              {activeTab === 'upload' ? (
+                <UploadCloud className="w-3.5 h-3.5" />
+              ) : (
+                <Pin className="w-3.5 h-3.5" />
+              )}
               <span>
                 {isSubmitting
                   ? 'Publishing...'

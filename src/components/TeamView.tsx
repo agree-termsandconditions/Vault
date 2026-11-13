@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Employee, DepartmentConfig, DEFAULT_DEPARTMENTS, PasswordResetRequest } from '../types';
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import {
   Users,
   UserPlus,
@@ -412,6 +409,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     if (!file) return;
 
     try {
+      const XLSX = await import('xlsx');
       const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -492,7 +490,8 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     }
   };
 
-  const handleDownloadSampleTemplate = () => {
+  const handleDownloadSampleTemplate = async () => {
+    const XLSX = await import('xlsx');
     const sampleRows = [
       {
         'Emp ID': 'EMP-3001',
@@ -517,7 +516,8 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     XLSX.writeFile(workbook, 'Vault_Users_Bulk_Template.xlsx');
   };
 
-  const handleExportXLSX = () => {
+  const handleExportXLSX = async () => {
+    const XLSX = await import('xlsx');
     const rows = employees.map((emp) => ({
       'Emp ID': emp.emp_id,
       'Full Name': emp.full_name,
@@ -538,7 +538,13 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     showToast('Downloaded Vault_Users_Directory.xlsx');
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    const [{ jsPDF }, autoTableModule] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
+    const autoTable = (autoTableModule as any).default || autoTableModule;
+
     const doc = new jsPDF({ orientation: 'landscape' });
     doc.setFontSize(16);
     doc.setTextColor(14, 62, 199);

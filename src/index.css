@@ -17,9 +17,11 @@
   html, body, #root {
     background-color: #faf8ff;
     color: #151b2a;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
     overflow-x: hidden;
     max-width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -30,47 +32,42 @@
   background-size: 22px 22px;
 }
 
-/* Sticky Card Styling - True Post-It Squared shape, tactile paper shadow */
+/* Sticky Card Styling - Clean Modern Sticky Note with crisp rendering */
 .sticky-card {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   min-height: 0;
-  border-radius: 4px;
-  box-shadow: 0 3px 8px -1px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.04);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, box-shadow;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Tactile, smooth paper lift on hover - zero jitter */
+/* Smooth paper lift on hover */
 .sticky-card:hover {
-  transform: translateY(-4px) translateZ(0);
-  box-shadow: 0 14px 26px -4px rgba(15, 23, 42, 0.13), 0 6px 12px -2px rgba(15, 23, 42, 0.06);
+  transform: translateY(-3px) translateZ(0);
+  box-shadow: 0 10px 22px -3px rgba(15, 23, 42, 0.12), 0 4px 8px -2px rgba(15, 23, 42, 0.05);
   cursor: pointer;
 }
 
-/* Realistic Frosted Adhesive Tape Strip at top center with finer zigzag cuts & balanced proportions */
+/* Clean Translucent Tape Strip - crisp on all displays */
 .frosted-tape {
   position: absolute;
-  top: -12px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 52px;
-  height: 24px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.6) 100%
-  );
-  backdrop-filter: blur(2.5px);
-  -webkit-backdrop-filter: blur(2.5px);
-  clip-path: polygon(
-    0% 11%, 4% 0%, 8% 11%, 12% 0%, 16% 11%, 20% 0%, 24% 11%, 28% 0%, 32% 11%, 36% 0%, 40% 11%, 44% 0%, 48% 11%, 52% 0%, 56% 11%, 60% 0%, 64% 11%, 68% 0%, 72% 11%, 76% 0%, 80% 11%, 84% 0%, 88% 11%, 92% 0%, 96% 11%, 100% 0%,
-    100% 89%, 96% 100%, 92% 89%, 88% 100%, 84% 89%, 80% 100%, 76% 89%, 72% 100%, 68% 89%, 64% 100%, 60% 89%, 56% 100%, 52% 89%, 48% 100%, 44% 89%, 40% 100%, 36% 89%, 32% 100%, 28% 89%, 24% 100%, 20% 89%, 16% 100%, 12% 89%, 8% 100%, 4% 89%, 0% 100%
-  );
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+  width: 50px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   z-index: 20;
   pointer-events: none !important;
 }
@@ -78,15 +75,16 @@
 /* Top paper adhesive sheen */
 .adhesive-strip {
   pointer-events: none !important;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 0%, transparent 100%);
 }
 
-/* Font families */
+/* High-readability font families */
 .font-hand {
-  font-family: 'Caveat', cursive, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.015em;
 }
 .font-sans {
-  font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Updated tactile note tape */

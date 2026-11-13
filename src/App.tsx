@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Clock, ArrowRight } from 'lucide-react';
 import { VaultFile, DEFAULT_DEPARTMENTS, DepartmentConfig } from './types';
 import { Header } from './components/Header';
 import { UploadWizardModal } from './components/UploadWizardModal';
 import { RepositoryCard } from './components/RepositoryCard';
 import { FileModal } from './components/FileModal';
-import { AdminDashboardView } from './components/AdminDashboardView';
 import { LoginModal } from './components/LoginModal';
 import { FoxxyChatbot } from './components/FoxxyChatbot';
 import { ShareLinkModal } from './components/ShareLinkModal';
 import { HelpGuideModal } from './components/HelpGuideModal';
+
+const AdminDashboardView = lazy(() =>
+  import('./components/AdminDashboardView').then((m) => ({ default: m.AdminDashboardView }))
+);
 
 export default function App() {
   const isStoredSessionActive = (): boolean => {
@@ -279,23 +283,32 @@ export default function App() {
         )}
 
         {(activeTab === 'admin' || activeTab === 'security' || activeTab === 'team' || activeTab === 'activity') && (
-          <AdminDashboardView
-            files={files}
-            isMasterAdmin={isMasterAdmin}
-            currentUser={currentUser}
-            initialSection={
-              activeTab === 'security'
-                ? 'security'
-                : activeTab === 'team'
-                ? 'team'
-                : activeTab === 'activity'
-                ? 'activity'
-                : 'overview'
+          <Suspense
+            fallback={
+              <div className="flex flex-col items-center justify-center p-16 text-slate-500 space-y-3">
+                <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Loading Management Console...</p>
+              </div>
             }
-            onSelectFile={handleSelectFile}
-            onRefreshFiles={fetchVaultFiles}
-            onBackToRepository={() => setActiveTab('repository')}
-          />
+          >
+            <AdminDashboardView
+              files={files}
+              isMasterAdmin={isMasterAdmin}
+              currentUser={currentUser}
+              initialSection={
+                activeTab === 'security'
+                  ? 'security'
+                  : activeTab === 'team'
+                  ? 'team'
+                  : activeTab === 'activity'
+                  ? 'activity'
+                  : 'overview'
+              }
+              onSelectFile={handleSelectFile}
+              onRefreshFiles={fetchVaultFiles}
+              onBackToRepository={() => setActiveTab('repository')}
+            />
+          </Suspense>
         )}
       </div>
 
@@ -328,7 +341,7 @@ export default function App() {
 
             {/* Circular warning icon */}
             <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-4 text-amber-600 shadow-inner">
-              <span className="material-symbols-outlined text-3xl">timer_off</span>
+              <Clock className="w-8 h-8 text-amber-600" />
             </div>
 
             {/* Modal Title */}
@@ -351,7 +364,7 @@ export default function App() {
               className="w-full py-3 px-5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-600/25 transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Continue as Visitor</span>
-              <span className="material-symbols-outlined text-lg">arrow_forward</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>

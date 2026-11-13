@@ -7,6 +7,7 @@ import os from "os";
 import { execSync } from "child_process";
 import crypto from "crypto";
 import multer from "multer";
+import compression from "compression";
 import dotenv from "dotenv";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
@@ -17,6 +18,7 @@ const PORT = Number(process.env.PORT) || 443;
 
 // Institutional Security: Disable fingerprinting & apply baseline HTTP security headers
 app.disable("x-powered-by");
+app.use(compression());
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
@@ -3963,8 +3965,16 @@ async function startServer() {
     });
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    // Cache hashed assets for 1 year (immutable); cache HTML with no-cache so updates are immediately picked up
+    app.use("/assets", express.static(path.join(distPath, "assets"), {
+      maxAge: "1y",
+      immutable: true
+    }));
+    app.use(express.static(distPath, {
+      maxAge: "1h"
+    }));
     app.get("*", (_req, res) => {
+      res.setHeader("Cache-Control", "no-cache");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
