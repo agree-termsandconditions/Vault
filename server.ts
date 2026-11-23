@@ -4856,18 +4856,32 @@ async function startServer() {
   if (!fs.existsSync(certDir)) {
     try { fs.mkdirSync(certDir, { recursive: true }); } catch (_e) {}
   }
-  const certKeyPath = path.join(certDir, "server.key");
-  const certCrtPath = path.join(certDir, "server.crt");
 
-  // Auto-generate self-signed SSL cert for akish.online if not already supplied
-  if (!fs.existsSync(certKeyPath) || !fs.existsSync(certCrtPath)) {
+  // Support both fullchain.pem / privkey.pem (Let's Encrypt & Cloudflare Origin) and server.crt / server.key
+  let certKeyPath = [
+    path.join(certDir, "privkey.pem"),
+    path.join(certDir, "server.key")
+  ].find(p => fs.existsSync(p) && fs.statSync(p).size > 0);
+
+  let certCrtPath = [
+    path.join(certDir, "fullchain.pem"),
+    path.join(certDir, "server.crt")
+  ].find(p => fs.existsSync(p) && fs.statSync(p).size > 0);
+
+  // If certificates are missing, auto-generate fallback SSL cert for the configured domain
+  if (!certKeyPath || !certCrtPath) {
+    const targetDomain = (process.env.APP_URL || "akish.space").replace(/^https?:\/\//i, "").split(/[:/]/)[0] || "akish.space";
+    const genKeyPath = path.join(certDir, "privkey.pem");
+    const genCrtPath = path.join(certDir, "fullchain.pem");
     try {
-      execSync(`openssl req -x509 -newkey rsa:2048 -nodes -keyout "${certKeyPath}" -out "${certCrtPath}" -days 365 -subj "/CN=akish.online"`, { stdio: "ignore" });
+      execSync(`openssl req -x509 -newkey rsa:2048 -nodes -keyout "${genKeyPath}" -out "${genCrtPath}" -days 365 -subj "/CN=${targetDomain}"`, { stdio: "ignore" });
+      certKeyPath = genKeyPath;
+      certCrtPath = genCrtPath;
     } catch (_e) {}
   }
 
-  // 1. Launch HTTPS Server (Port 443 / Standard SSL for https://akish.online)
-  if (fs.existsSync(certKeyPath) && fs.existsSync(certCrtPath)) {
+  // 1. Launch HTTPS Server (Port 443 / Standard SSL)
+  if (certKeyPath && certCrtPath && fs.existsSync(certKeyPath) && fs.existsSync(certCrtPath)) {
     try {
       const sslOptions = {
         key: fs.readFileSync(certKeyPath),
@@ -4875,8 +4889,9 @@ async function startServer() {
       };
       const httpsPort = Number(process.env.HTTPS_PORT) || 443;
       const httpsServer = https.createServer(sslOptions, app);
+      const displayDomain = (process.env.APP_URL || "akish.space").replace(/^https?:\/\//i, "").split(/[:/]/)[0] || "akish.space";
       httpsServer.listen(httpsPort, "0.0.0.0", () => {
-        console.log(`[HTTPS READY] Campus Study Vault SSL active on port ${httpsPort} -> https://akish.online / https://localhost`);
+        console.log(`[HTTPS READY] Campus Study Vault SSL active on port ${httpsPort} -> https://${displayDomain} / https://localhost`);
       });
       httpsServer.on("error", (err: any) => {
         console.warn(`[HTTPS Warning on port ${httpsPort}]:`, err.message);
