@@ -1,35 +1,26 @@
-# Multi-stage Dockerfile for Campus Study Vault
-FROM oven/bun:1-slim AS builder
-WORKDIR /app
-
-# Install dependencies
-COPY package.json ./
-RUN bun install
-
-# Copy source code and build production assets
-COPY . .
-RUN bun run build
-
-# Production runtime container
-FROM oven/bun:1-slim AS runner
+FROM oven/bun:1-slim
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=443
+ENV PORT=3000
 ENV HTTP_PORT=80
+ENV HTTPS_PORT=443
+ENV ENABLE_PORT_3000=true
 
-# Copy runtime files
+# Copy application runtime dependencies, bundle, and code
 COPY package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server.ts ./server.ts
-COPY --from=builder /app/fox-idle.png ./fox-idle.png
-# Ensure directories exist
-RUN mkdir -p /app/EncryptedUploads /app/certs
+COPY node_modules ./node_modules
+COPY dist ./dist
+COPY public ./public
+COPY src ./src
+COPY server.ts ./server.ts
+COPY fox-idle.png ./fox-idle.png
+COPY database ./database
 
-COPY --from=builder /app/certs ./certs
+# Ensure runtime directories exist
+RUN mkdir -p /app/EncryptedUploads /app/certs /app/database
 
-VOLUME ["/app/EncryptedUploads"]
-EXPOSE 443 80 3000
+VOLUME ["/app/EncryptedUploads", "/app/database"]
+EXPOSE 3000 80 443
 
 CMD ["bun", "server.ts"]

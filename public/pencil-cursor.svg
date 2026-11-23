@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Graphite Sharp Tip at Hotspot (1, 1) -->
+  <polygon points="1,1 8,3 3,8" fill="#0f172a"/>
+  <!-- Sharpened Wood Section -->
+  <polygon points="8,3 12,5 5,12 3,8" fill="#fde68a" stroke="#d97706" stroke-width="0.4"/>
+  <!-- Pencil Barrel (Vibrant Campus Gold/Amber) -->
+  <polygon points="12,5 23,16 16,23 5,12" fill="#f59e0b" stroke="#b45309" stroke-width="0.5"/>
+  <line x1="8.5" y1="8.5" x2="19.5" y2="19.5" stroke="#fef3c7" stroke-width="1.2"/>
+  <!-- Metallic Ferrule Band -->
+  <polygon points="23,16 26,19 19,26 16,23" fill="#94a3b8" stroke="#64748b" stroke-width="0.5"/>
+  <!-- Pink Rubber Eraser -->
+  <polygon points="26,19 28.5,21.5 21.5,28.5 19,26" fill="#fb7185" stroke="#e11d48" stroke-width="0.5"/>
+</svg>

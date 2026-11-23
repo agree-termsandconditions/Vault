@@ -17,13 +17,17 @@ export interface VaultFile {
   is_directory: boolean;
   item_count?: number;
   tags?: string[];
+  custom_color?: string;
   download_count: number;
   is_deleted: boolean;
+  deleted_at?: string;
+  deleted_by?: 'user' | 'admin' | string;
   expires_at: string;
   created_at: string;
   is_link?: boolean;
   link_url?: string;
   link_description?: string;
+  preview_text?: string;
 }
 
 export interface DepartmentConfig {
@@ -60,7 +64,7 @@ export const DEFAULT_DEPARTMENTS: DepartmentConfig[] = [
  */
 export function shortenTag(tag: string): string {
   if (!tag) return '';
-  const trimmed = tag.trim();
+  const trimmed = tag.trim().replace(/^#+/, '');
   const lower = trimmed.toLowerCase();
 
   if (lower === 'mathematics' || lower === 'maths' || lower === 'math') return 'Math';
@@ -78,7 +82,6 @@ export function shortenTag(tag: string): string {
 
 /**
  * Automatically decodes UTF-8 strings that were misinterpreted as ISO-8859-1 (Latin-1)
- * e.g., "à®µà®¿à®Ÿà¯ à®¤à®²à¯ˆ" -> "விடுதலை"
  */
 export function fixMojibake(text: string): string {
   if (!text || typeof text !== 'string') return '';
@@ -152,3 +155,71 @@ export interface AllowedExt {
   category: string;
   is_allowed: boolean;
 }
+
+// ================= DYNAMIC SITE THEMES & SEASONAL OVERLAYS =================
+export interface ThemeNavbarConfig {
+  bannerText?: string;
+  bannerBg?: string;
+  bannerTextColor?: string;
+  runnerSvg?: string;
+  runnerHeight?: number;
+  runnerAnimation?: 'slide' | 'marquee' | 'none';
+  stringLights?: boolean;
+  stringLightsSvg?: string;
+}
+
+export interface ThemeFooterConfig {
+  blendSvg?: string;
+  blendHeight?: number;
+}
+
+export interface ThemeCornersConfig {
+  bottomLeftSvg?: string;
+  bottomRightSvg?: string;
+  scaleOnMobile?: boolean;
+}
+
+export interface ThemeAmbientConfig {
+  type: 'snow' | 'particles' | 'confetti' | 'stars' | 'none';
+  particleColor?: string;
+  particleCount?: number;
+  speed?: number;
+  runningSanta?: boolean;
+  fallingSnow?: boolean;
+  festiveCursor?: boolean;
+}
+
+export interface ThemeCardSkinDecorations {
+  topLeftSvg?: string;
+  topSvg?: string;
+  topRightSvg?: string;
+  bottomLeftSvg?: string;
+  bottomSvg?: string;
+  bottomRightSvg?: string;
+}
+
+export interface ThemeCardSkin {
+  id: string;
+  name: string;
+  bgColor: string;
+  textColor?: string;
+  borderColor?: string;
+  decorations?: ThemeCardSkinDecorations;
+}
+
+export interface SiteTheme {
+  id: string;
+  name: string;
+  description: string;
+  author: string;
+  version: string;
+  createdAt?: string;
+  isBuiltIn?: boolean;
+  mascotOverride?: string;
+  navbar?: ThemeNavbarConfig;
+  footer?: ThemeFooterConfig;
+  corners?: ThemeCornersConfig;
+  ambient?: ThemeAmbientConfig;
+  cardSkins?: ThemeCardSkin[];
+}
+

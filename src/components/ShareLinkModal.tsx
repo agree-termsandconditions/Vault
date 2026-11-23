@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { apiFetch } from '../utils/apiFetch';
+import { validateProtectionPin } from '../utils/pinValidation';
 import {
   X,
   Link as LinkIcon,
@@ -124,12 +126,9 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
     }
 
     if (!isPasswordless) {
-      if (!pin || pin.trim().length !== 6) {
-        setErrorMessage('Protection PIN must be exactly 6 characters.');
-        return;
-      }
-      if (!/[a-zA-Z]/.test(pin) || !/[0-9]/.test(pin)) {
-        setErrorMessage('Protection PIN must contain at least 1 letter and 1 number (e.g. 12569c or aserc2).');
+      const pinCheck = validateProtectionPin(pin);
+      if (!pinCheck.valid) {
+        setErrorMessage(pinCheck.error || 'Invalid PIN.');
         return;
       }
     }
@@ -137,12 +136,10 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem('vault_session_token');
-      const response = await fetch('/api/links', {
+      const response = await apiFetch('/api/links', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}),
         },
         body: JSON.stringify({
           url: trimmedUrl,
@@ -195,7 +192,7 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
-            title="Close"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -384,7 +381,7 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                 </label>
                 <input
                   type="password"
-                  placeholder="e.g. 12569c or aserc2"
+                  placeholder="••••••"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                   maxLength={6}

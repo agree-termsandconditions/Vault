@@ -1,0 +1,6 @@
+{
+  "name": "Vault — Campus Note Sharing & Study Repository",
+  "description": "A clean, minimalist, desktop-first web application for sharing encrypted and public study notes, documents, and web links with multi-tag categorization and instant low-latency search.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

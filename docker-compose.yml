@@ -1,20 +1,102 @@
 services:
-  vault:
+  # ============================================================================
+  # Container 1: Notes Space Web App (Notes Space / Campus Study Vault)
+  # Host Ports: 80 (HTTP), 443 (HTTPS), 3000 (Convenience)
+  # ============================================================================
+  notespace:
     build: .
     container_name: campus-study-vault
     restart: unless-stopped
     ports:
-      - "443:443"
       - "80:80"
+      - "443:443"
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - PORT=443
+      - PORT=3000
       - HTTP_PORT=80
+      - HTTPS_PORT=443
+      - ENABLE_PORT_3000=true
+      - DATABASE_URL=postgresql://vault_admin:${DB_PASSWORD:-campus_secure_vault_2026}@shared-db:5432/notespace_logs_db
+      - SHARED_USER_DATABASE_URL=postgresql://vault_admin:${DB_PASSWORD:-campus_secure_vault_2026}@shared-db:5432/shared_user_db
+      - SESSION_SECRET=${SESSION_SECRET:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    security_opt:
+      - no-new-privileges:true
     volumes:
-      - vault_data:/app/EncryptedUploads
+      - vault_uploads:/app/EncryptedUploads
+      - vault_db:/app/database
       - ./certs:/app/certs
+    depends_on:
+      shared-db:
+        condition: service_healthy
+    networks:
+      - campus-network
+
+  # ============================================================================
+  # Container 2: Second App (Timed Internet Access & Gateway Controller)
+  # Host Ports: 9998 (App connection), 9999 (Admin Console)
+  # ============================================================================
+  second-app:
+    build: ../inbrowser-internet
+    container_name: campus-internet-portal
+    restart: unless-stopped
+    ports:
+      - "9998:9998"
+      - "9999:9999"
+    environment:
+      - NODE_ENV=production
+      - PORT=9998
+      - HTTPS_PORT=9999
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - CLIENT_SSH_USER=${CLIENT_SSH_USER:-teachnext}
+      - SSH_KEY_PATH=/secrets/ssh/portal_agent
+      - SIMULATION_FALLBACK=${SIMULATION_FALLBACK:-true}
+      - DATABASE_URL=postgresql://vault_admin:${DB_PASSWORD:-campus_secure_vault_2026}@shared-db:5432/app2_logs_db
+      - SHARED_USER_DATABASE_URL=postgresql://vault_admin:${DB_PASSWORD:-campus_secure_vault_2026}@shared-db:5432/shared_user_db
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ~/.ssh/portal_agent:/secrets/ssh/portal_agent:ro
+      - ../inbrowser-internet/data:/app/data
+    depends_on:
+      shared-db:
+        condition: service_healthy
+    networks:
+      - campus-network
+
+  # ============================================================================
+  # Container 3: Dedicated Shared Database Engine (PostgreSQL 16)
+  # Isolated private bridge network with shared_user_db, notespace_logs_db, app2_logs_db
+  # ============================================================================
+  shared-db:
+    image: postgres:16-alpine
+    container_name: campus-shared-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=vault_admin
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-campus_secure_vault_2026}
+      - POSTGRES_DB=postgres
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - campus_db_data:/var/lib/postgresql/data
+      - ./database/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault_admin -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - campus-network
+
+networks:
+  campus-network:
+    driver: bridge
+    name: campus-network
 
 volumes:
-  vault_data:
+  campus_db_data:
+  vault_uploads:
+  vault_db:

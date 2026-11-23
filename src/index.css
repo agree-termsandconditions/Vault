@@ -15,64 +15,249 @@
 
 @layer base {
   html, body, #root {
-    background-color: #faf8ff;
-    color: #151b2a;
+    background-color: #ffffff;
+    color: #0f172a;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow-x: hidden;
     max-width: 100vw;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Keep standard pointer on clickable interactive buttons, links, and cards */
+  button,
+  a,
+  [role="button"],
+  .cursor-pointer,
+  select,
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  .sticky-card {
+    cursor: pointer !important;
+  }
+
+  /* Keep standard text caret inside text inputs, editors, and search bars */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="search"],
+  textarea,
+  [contenteditable="true"] {
+    cursor: text !important;
   }
 }
 
-/* Dot-grid classroom pinboard background */
+/* High-contrast dot-grid classroom pinboard background by default */
 .classroom-dots {
-  background-color: #faf8ff;
-  background-image: radial-gradient(#cbd5e1 1.25px, transparent 1.25px);
-  background-size: 22px 22px;
+  background-color: #ffffff;
+  background-image: radial-gradient(#64748b 1.4px, transparent 1.4px);
+  background-size: 24px 24px;
 }
 
-/* Sticky Card Styling - True Post-It Squared shape, tactile paper shadow */
+/* High-Contrast Daylight Accessibility Mode (background only; notes keep paper-light border) */
+.high-contrast-light,
+.high-contrast-light.classroom-dots {
+  background-color: #ffffff !important;
+  background-image: radial-gradient(#64748b 1.4px, transparent 1.4px) !important;
+  background-size: 24px 24px !important;
+  color: #020617 !important;
+}
+
+.high-contrast-light .sticky-card {
+  border: 1px solid rgba(15, 23, 42, 0.11) !important;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04) !important;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Responsive Notes Board Grid:
+   - Mobile Phones & Phablets (< 640px): 2-column grid with increased vertical breathing room between rows
+   - Tablets Portrait (640px - 767px): 3 columns with airy row gap
+   - Tablets Landscape (768px - 839px): 4 columns
+   - Classroom Projectors & Standard screens (840px+): Enforces exactly 6 columns (Ubuntu 1024x768 4:3 zero-scroll fit)
+   - Laptops & Widescreen Monitors (1280px+): 6 columns within centered max-w-[1440px] container
+*/
+/* Responsive Notes Board Grid:
+   - Mobile Phones (< 640px): 2 columns
+   - Tablets Portrait (640px - 767px): 3 columns
+   - Tablets Landscape (768px - 839px): 4 columns
+   - Classroom Projectors & Standard Screens 972x654 & 1024x768 (840px - 1119px): Exactly 6 spacious columns (~150px - 160px per card)
+   - Laptops & Widescreen Monitors 1280x800, 1440x900, 1920x1080 (1120px+): Exactly 7 columns per row
+*/
+.notes-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 142px));
+  justify-content: center;
+  column-gap: 0.65rem;
+  row-gap: 0.875rem;
+}
+
+@media (min-width: 480px) and (max-width: 639px) {
+  .notes-grid-layout {
+    grid-template-columns: repeat(2, minmax(0, 148px));
+    justify-content: center;
+    column-gap: 0.75rem;
+    row-gap: 1rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .notes-grid-layout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    row-gap: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .notes-grid-layout {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    row-gap: 1.1rem;
+  }
+}
+
+/* 840px - 1119px (Classroom Projectors & Standard Screens e.g. 972x654, 1024x768):
+   6 comfortable cards per row (~150px - 160px card size with generous breathing room) */
+@media (min-width: 840px) {
+  .notes-grid-layout {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.75rem;
+    row-gap: 1rem;
+  }
+}
+
+/* 1120px+ (Laptops & Widescreen Monitors 1280x800, 1440x900, 1920x1080):
+   7 cards per row (~165px - 190px card size) */
+@media (min-width: 1120px) {
+  .notes-grid-layout {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.8rem;
+    row-gap: 1.1rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .notes-grid-layout {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.85rem;
+    row-gap: 1.1rem;
+  }
+}
+
+/* Sticky Card Styling - Authentic Square Sticky Note Proportions (Aspect Ratio 1 / 1) */
 .sticky-card {
   position: relative;
+  overflow: visible !important;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  min-height: 0;
-  border-radius: 4px;
-  box-shadow: 0 3px 8px -1px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.04);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  aspect-ratio: 1 / 1 !important;
+  min-height: unset !important;
+  border-radius: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.11);
+  box-shadow: 0 3px 10px -2px rgba(15, 23, 42, 0.08), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, box-shadow;
   transform: translateZ(0);
   backface-visibility: hidden;
+  padding: 0.55rem 0.5rem !important;
+}
+
+/* Compact screens & 972x654 / 1024x768 Projector screens - Comfortable balanced padding */
+@media screen and (min-width: 840px) and (max-width: 1119px) {
+  .sticky-card {
+    aspect-ratio: 1 / 1 !important;
+    min-height: unset !important;
+    padding: 0.58rem 0.52rem !important;
+  }
+}
+
+/* Large Desktop Monitors (width >= 1120px) */
+@media screen and (min-width: 1120px) {
+  .sticky-card {
+    aspect-ratio: 1 / 1 !important;
+    min-height: unset !important;
+    padding: 0.6rem 0.55rem !important;
+  }
+}
+
+/* Mobile Phones (< 640px): Reduced note size specifically for mobile screens */
+@media (max-width: 639px) {
+  .sticky-card {
+    aspect-ratio: 1 / 1 !important;
+    min-height: unset !important;
+    max-width: 142px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 0.42rem 0.38rem !important;
+  }
+
+  .sticked-tape {
+    top: -6px !important;
+    width: 30px !important;
+    height: 15px !important;
+  }
 }
 
 /* Tactile, smooth paper lift on hover - zero jitter */
 .sticky-card:hover {
   transform: translateY(-4px) translateZ(0);
-  box-shadow: 0 14px 26px -4px rgba(15, 23, 42, 0.13), 0 6px 12px -2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 16px 28px -6px rgba(15, 23, 42, 0.14), 0 6px 12px -2px rgba(15, 23, 42, 0.06);
   cursor: pointer;
 }
 
-/* Realistic Frosted Adhesive Tape Strip at top center with finer zigzag cuts & balanced proportions */
-.frosted-tape {
+/* Straight Serrated-Edge Translucent Dispenser Tape centered at top edge with shadow border */
+.sticked-tape {
   position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 52px;
-  height: 24px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.6) 100%
-  );
-  backdrop-filter: blur(2.5px);
-  -webkit-backdrop-filter: blur(2.5px);
-  clip-path: polygon(
-    0% 11%, 4% 0%, 8% 11%, 12% 0%, 16% 11%, 20% 0%, 24% 11%, 28% 0%, 32% 11%, 36% 0%, 40% 11%, 44% 0%, 48% 11%, 52% 0%, 56% 11%, 60% 0%, 64% 11%, 68% 0%, 72% 11%, 76% 0%, 80% 11%, 84% 0%, 88% 11%, 92% 0%, 96% 11%, 100% 0%,
-    100% 89%, 96% 100%, 92% 89%, 88% 100%, 84% 89%, 80% 100%, 76% 89%, 72% 100%, 68% 89%, 64% 100%, 60% 89%, 56% 100%, 52% 89%, 48% 100%, 44% 89%, 40% 100%, 36% 89%, 32% 100%, 28% 89%, 24% 100%, 20% 89%, 16% 100%, 12% 89%, 8% 100%, 4% 89%, 0% 100%
-  );
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+  top: -7.5px;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 35px;
+  height: 17.5px;
+  transform: none !important;
   z-index: 20;
   pointer-events: none !important;
+  user-select: none !important;
+}
+
+@media screen and (min-width: 1025px) {
+  .sticked-tape {
+    top: -10px;
+    width: 48px;
+    height: 24px;
+  }
+}
+
+.sticked-tape-even,
+.sticked-tape-odd {
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  transform: none !important;
+}
+
+/* Fine zigzag serrated sawtooth edges along both top and bottom with straight vertical sides */
+.serrated-tape-inner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.55) 100%);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  clip-path: polygon(
+    0px 2.5px, 1.5px 0.5px, 3px 2.5px, 4.5px 0.5px, 6px 2.5px, 7.5px 0.5px, 9px 2.5px, 10.5px 0.5px, 12px 2.5px, 13.5px 0.5px, 15px 2.5px, 16.5px 0.5px, 18px 2.5px, 19.5px 0.5px, 21px 2.5px, 22.5px 0.5px, 24px 2.5px, 25.5px 0.5px, 27px 2.5px, 28.5px 0.5px, 30px 2.5px, 31.5px 0.5px, 33px 2.5px, 34.5px 0.5px, 36px 2.5px, 37.5px 0.5px, 39px 2.5px, 40.5px 0.5px, 42px 2.5px, 43.5px 0.5px, 45px 2.5px, 46.5px 0.5px, 48px 2.5px,
+    48px 21.5px, 46.5px 23.5px, 45px 21.5px, 43.5px 23.5px, 42px 21.5px, 40.5px 23.5px, 39px 21.5px, 37.5px 23.5px, 36px 21.5px, 34.5px 23.5px, 33px 21.5px, 31.5px 23.5px, 30px 21.5px, 28.5px 23.5px, 27px 21.5px, 25.5px 23.5px, 24px 21.5px, 22.5px 23.5px, 21px 21.5px, 19.5px 23.5px, 18px 21.5px, 16.5px 23.5px, 15px 21.5px, 13.5px 23.5px, 12px 21.5px, 10.5px 23.5px, 9px 21.5px, 7.5px 23.5px, 6px 21.5px, 4.5px 23.5px, 3px 21.5px, 1.5px 23.5px, 0px 21.5px
+  );
+  -webkit-clip-path: polygon(
+    0px 2.5px, 1.5px 0.5px, 3px 2.5px, 4.5px 0.5px, 6px 2.5px, 7.5px 0.5px, 9px 2.5px, 10.5px 0.5px, 12px 2.5px, 13.5px 0.5px, 15px 2.5px, 16.5px 0.5px, 18px 2.5px, 19.5px 0.5px, 21px 2.5px, 22.5px 0.5px, 24px 2.5px, 25.5px 0.5px, 27px 2.5px, 28.5px 0.5px, 30px 2.5px, 31.5px 0.5px, 33px 2.5px, 34.5px 0.5px, 36px 2.5px, 37.5px 0.5px, 39px 2.5px, 40.5px 0.5px, 42px 2.5px, 43.5px 0.5px, 45px 2.5px, 46.5px 0.5px, 48px 2.5px,
+    48px 21.5px, 46.5px 23.5px, 45px 21.5px, 43.5px 23.5px, 42px 21.5px, 40.5px 23.5px, 39px 21.5px, 37.5px 23.5px, 36px 21.5px, 34.5px 23.5px, 33px 21.5px, 31.5px 23.5px, 30px 21.5px, 28.5px 23.5px, 27px 21.5px, 25.5px 23.5px, 24px 21.5px, 22.5px 23.5px, 21px 21.5px, 19.5px 23.5px, 18px 21.5px, 16.5px 23.5px, 15px 21.5px, 13.5px 23.5px, 12px 21.5px, 10.5px 23.5px, 9px 21.5px, 7.5px 23.5px, 6px 21.5px, 4.5px 23.5px, 3px 21.5px, 1.5px 23.5px, 0px 21.5px
+  );
 }
 
 /* Top paper adhesive sheen */
@@ -87,6 +272,49 @@
 }
 .font-sans {
   font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Note Title Language Fonts (Only applied to the file/note title name) */
+.font-title-english {
+  font-family: 'Caveat', cursive, sans-serif;
+}
+.font-title-hindi {
+  font-family: 'Kalam', 'Kamal', cursive, sans-serif;
+}
+.font-title-other {
+  font-family: 'Noto Sans', 'Noto Sans Kannada', 'Noto Sans Tamil', 'Noto Sans Telugu', sans-serif;
+}
+
+/* Compact single-row filter bar for screen sizes <= 1024px (e.g. 900x550 to 1024x768) */
+@media screen and (max-width: 1024px) {
+  .notes-filter-bar {
+    padding-top: 2.5px !important;
+    padding-bottom: 2.5px !important;
+    margin-bottom: 6px !important;
+    min-height: 26px !important;
+  }
+  .notes-filter-bar .filter-tag-pill {
+    height: 21px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 1 !important;
+  }
+  .notes-filter-bar .filter-action-btn {
+    height: 21px !important;
+    width: 21px !important;
+  }
+  .notes-filter-bar .filter-action-btn-dropdown {
+    height: 21px !important;
+    line-height: 1 !important;
+  }
+  .notes-filter-bar .filter-view-switcher {
+    height: 21px !important;
+    padding: 1.5px !important;
+  }
+  .notes-filter-bar .filter-view-switcher button {
+    height: 17px !important;
+    width: 17px !important;
+  }
 }
 
 /* Updated tactile note tape */
@@ -256,4 +484,12 @@
   align-items: center;
   justify-content: center;
   transform-origin: center center;
+}
+
+/* Accessible touch targets on mobile (< 640px) */
+@media (max-width: 639px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, Folder, LockKeyhole, Zap, CheckCircle2, AlertCircle, X, FileText, UserCheck, Shield } from 'lucide-react';
+import { apiFetch } from '../utils/apiFetch';
+import { validateProtectionPin } from '../utils/pinValidation';
 
 interface SecureUploadCardProps {
   onUploadSuccess: () => void;
@@ -102,15 +104,9 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
 
     const fullPin = pinDigits.join('');
     if (uploadMode === 'pin') {
-      if (fullPin.length !== 6) {
-        setStatusMessage({ type: 'error', text: 'Protection PIN must be exactly 6 characters.' });
-        return;
-      }
-      if (!/[a-zA-Z]/.test(fullPin) || !/[0-9]/.test(fullPin)) {
-        setStatusMessage({
-          type: 'error',
-          text: 'Protection PIN must contain at least 1 letter and 1 number (e.g. 12569c or aserc2).'
-        });
+      const pinCheck = validateProtectionPin(fullPin);
+      if (!pinCheck.valid) {
+        setStatusMessage({ type: 'error', text: pinCheck.error || 'Invalid PIN.' });
         return;
       }
     }
@@ -126,12 +122,8 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
       formData.append('department', 'IT Dept');
       formData.append('uploader_name', currentUser);
 
-      const token = localStorage.getItem('vault_session_token');
-      const res = await fetch('/api/upload', {
+      const res = await apiFetch('/api/upload', {
         method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}),
-        },
         body: formData,
       });
 
@@ -318,7 +310,9 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
                   {pinDigits.map((digit, idx) => (
                     <input
                       key={idx}
-                      ref={(el) => (pinInputRefs.current[idx] = el)}
+                      ref={(el) => {
+                        pinInputRefs.current[idx] = el;
+                      }}
                       type="password"
                       maxLength={6}
                       value={digit}

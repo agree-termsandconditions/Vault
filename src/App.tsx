@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { VaultFile, DEFAULT_DEPARTMENTS, DepartmentConfig } from './types';
+import { VaultFile, DEFAULT_DEPARTMENTS, DepartmentConfig, SiteTheme } from './types';
 import { Header } from './components/Header';
 import { UploadWizardModal } from './components/UploadWizardModal';
 import { RepositoryCard } from './components/RepositoryCard';
@@ -9,6 +9,10 @@ import { LoginModal } from './components/LoginModal';
 import { FoxxyChatbot } from './components/FoxxyChatbot';
 import { ShareLinkModal } from './components/ShareLinkModal';
 import { HelpGuideModal } from './components/HelpGuideModal';
+import { SeasonalThemeOverlay } from './components/SeasonalThemeOverlay';
+import { apiFetch } from './utils/apiFetch';
+
+const FILES_CACHE_KEY = 'vault_cached_files_v1';
 
 export default function App() {
   const isStoredSessionActive = (): boolean => {
@@ -22,7 +26,7 @@ export default function App() {
 
   const [activeTab, setActiveTabState] = useState<string>(() => {
     const saved = localStorage.getItem('vault_active_tab');
-    if (saved && ['admin', 'security', 'team', 'activity'].includes(saved)) {
+    if (saved && ['admin', 'security', 'team', 'activity', 'themes'].includes(saved)) {
       return isStoredSessionActive() ? saved : 'repository';
     }
     return saved || 'repository';
@@ -31,6 +35,20 @@ export default function App() {
   const setActiveTab = (tab: string) => {
     setActiveTabState(tab);
     localStorage.setItem('vault_active_tab', tab);
+  };
+
+  // High-Contrast Daylight Accessibility Mode (enabled by default for background dotted structure)
+  const [highContrastLight, setHighContrastLight] = useState<boolean>(() => {
+    const saved = localStorage.getItem('vault_high_contrast_light');
+    return saved === null ? true : saved === 'true';
+  });
+
+  const toggleHighContrast = () => {
+    setHighContrastLight((prev) => {
+      const next = !prev;
+      localStorage.setItem('vault_high_contrast_light', String(next));
+      return next;
+    });
   };
 
   // Auth state persisted in localStorage with active session validation
@@ -72,7 +90,22 @@ export default function App() {
     return newExp;
   });
 
-  const [files, setFiles] = useState<VaultFile[]>([]);
+  // Low-latency cache-first hydration for instant initial paint (excluding directory items)
+  const [files, setFiles] = useState<VaultFile[]>(() => {
+    try {
+      const cached = localStorage.getItem(FILES_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter(
+            (f: VaultFile) => !f.is_directory && String(f.file_extension || '').toUpperCase() !== 'DIR'
+          );
+        }
+      }
+    } catch {}
+    return [];
+  });
+
   const [departments, setDepartments] = useState<DepartmentConfig[]>(DEFAULT_DEPARTMENTS);
   const [selectedFile, setSelectedFile] = useState<VaultFile | null>(null);
   const [modalAction, setModalAction] = useState<'decrypt' | 'download' | 'details' | 'delete'>('decrypt');
@@ -81,27 +114,84 @@ export default function App() {
   const [showShareLinkModal, setShowShareLinkModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<SiteTheme | null>(null);
+
+  const fetchSiteThemes = async () => {
+    try {
+      const res = await apiFetch('/api/themes');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.themes)) {
+        if (data.activeThemeId) {
+          const found = data.themes.find((t: SiteTheme) => t.id === data.activeThemeId);
+          setActiveTheme(found || null);
+        } else {
+          setActiveTheme(null);
+        }
+      }
+    } catch {
+      setActiveTheme(null);
+    }
+  };
 
   useEffect(() => {
     fetchVaultFiles();
     fetchDepartments();
+    fetchSiteThemes();
   }, []);
 
   const fetchVaultFiles = async () => {
     try {
-      const res = await fetch('/api/files');
+      const res = await apiFetch('/api/files');
       const data = await res.json();
-      if (data.success) {
-        setFiles(data.files);
+      if (data.success && Array.isArray(data.files)) {
+        const nonDirFiles = data.files.filter(
+          (f: VaultFile) => !f.is_directory && String(f.file_extension || '').toUpperCase() !== 'DIR'
+        );
+        setFiles(nonDirFiles);
+        try {
+          localStorage.setItem(FILES_CACHE_KEY, JSON.stringify(nonDirFiles));
+        } catch {}
       }
     } catch (err) {
       console.error('Error syncing repository files:', err);
     }
   };
 
+  // Optimistic zero-latency update for note tags
+  const handleUpdateFileMeta = async (fileId: number, newTags: string[], customColor?: string) => {
+    setFiles((prev) => {
+      const updated = prev.map((f) =>
+        f.id === fileId
+          ? { ...f, tags: newTags, custom_color: customColor || f.custom_color }
+          : f
+      );
+      try {
+        localStorage.setItem(FILES_CACHE_KEY, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    try {
+      await apiFetch('/api/files/update-tags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          file_id: fileId,
+          tags: newTags,
+          custom_color: customColor,
+        }),
+      });
+    } catch (err) {
+      console.error('Error updating note metadata:', err);
+      fetchVaultFiles();
+    }
+  };
+
   const fetchDepartments = async () => {
     try {
-      const res = await fetch('/api/departments');
+      const res = await apiFetch('/api/departments');
       const data = await res.json();
       if (data.success && Array.isArray(data.departments)) {
         setDepartments(data.departments);
@@ -110,8 +200,9 @@ export default function App() {
   };
 
   const handleSelectFile = (file: VaultFile, action: 'decrypt' | 'download' | 'details' | 'delete') => {
-    setSelectedFile(file);
+    // Always pass a fresh object copy so clicking the same file multiple times triggers FileModal cleanly
     setModalAction(action);
+    setSelectedFile({ ...file });
   };
 
   const handleLoginSuccess = (userData: {
@@ -137,8 +228,13 @@ export default function App() {
     setSessionExpiresAt(expTime);
 
     localStorage.setItem('vault_logged_in', 'true');
+    localStorage.setItem('vault_emp_id', userData.username);
     if (userData.token) {
       localStorage.setItem('vault_session_token', userData.token);
+      try {
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `vault_session_token=${encodeURIComponent(userData.token)}; path=/; max-age=86400; ${isSecure ? 'SameSite=None; Secure' : 'SameSite=Lax'}`;
+      } catch {}
     }
     localStorage.setItem('vault_is_admin', userData.isAdmin || masterFlag ? 'true' : 'false');
     localStorage.setItem('vault_is_master_admin', masterFlag ? 'true' : 'false');
@@ -147,25 +243,12 @@ export default function App() {
     localStorage.setItem('vault_user_role', userData.role);
     localStorage.setItem('vault_user_department', userData.department || 'Science');
     localStorage.setItem('vault_session_expires_at', String(expTime));
-
-    if (userData.isAdmin || masterFlag) {
-      setActiveTab('admin');
-    }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = (keepLoginModalOpen = false) => {
     const token = localStorage.getItem('vault_session_token');
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}),
-        },
-        body: JSON.stringify({ token }),
-      });
-    } catch (_e) {}
 
+    // Clear state & session keys synchronously first to prevent any race condition on subsequent sign-ins
     setIsLoggedIn(false);
     setIsAdmin(false);
     setIsMasterAdmin(false);
@@ -177,11 +260,38 @@ export default function App() {
     setSessionExpiresAt(null);
     setSelectedFile(null);
     setShowUploadWizard(false);
-    setShowLoginModal(false);
+    if (!keepLoginModalOpen) {
+      setShowLoginModal(false);
+    }
 
-    // Thorough purge of all local storage and session storage
-    localStorage.clear();
-    sessionStorage.clear();
+    localStorage.removeItem('vault_logged_in');
+    localStorage.removeItem('vault_emp_id');
+    localStorage.removeItem('vault_session_token');
+    localStorage.removeItem('vault_is_admin');
+    localStorage.removeItem('vault_is_master_admin');
+    localStorage.removeItem('vault_is_superuser');
+    localStorage.removeItem('vault_current_user');
+    localStorage.removeItem('vault_user_role');
+    localStorage.removeItem('vault_user_department');
+    localStorage.removeItem('vault_session_expires_at');
+    localStorage.removeItem('vault_active_tab');
+    try {
+      sessionStorage.clear();
+      const isSecure = window.location.protocol === 'https:';
+      document.cookie = `vault_session_token=; path=/; max-age=0; ${isSecure ? 'SameSite=None; Secure' : 'SameSite=Lax'}`;
+    } catch {}
+
+    if (token) {
+      void fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-Session-Token': token,
+        },
+        body: JSON.stringify({ token }),
+      }).catch(() => {});
+    }
   };
 
   // Institutional Terminal Security: In-browser session timeout after 15 minutes
@@ -192,7 +302,6 @@ export default function App() {
       const now = Date.now();
       if (now >= sessionExpiresAt) {
         clearInterval(interval);
-        // Clear stored session state immediately
         setIsLoggedIn(false);
         setIsAdmin(false);
         setIsMasterAdmin(false);
@@ -213,7 +322,6 @@ export default function App() {
         localStorage.removeItem('vault_session_expires_at');
         localStorage.removeItem('vault_active_tab');
 
-        // Show in-browser session expired overlay with blurred page
         setShowSessionExpiredModal(true);
       }
     }, 1000);
@@ -222,7 +330,14 @@ export default function App() {
   }, [isLoggedIn, sessionExpiresAt]);
 
   return (
-    <div className="min-h-screen bg-[#faf8ff] text-[#151b2a] flex flex-col antialiased relative classroom-dots">
+    <div
+      className={`min-h-screen bg-[#faf8ff] text-[#0f172a] flex flex-col antialiased relative classroom-dots ${
+        highContrastLight ? 'high-contrast-light' : ''
+      }`}
+    >
+      {/* Dynamic Seasonal Theme & Ambient Overlays (non-blocking) */}
+      <SeasonalThemeOverlay activeTheme={activeTheme} />
+
       {/* Top Header Navigation */}
       <Header
         activeTab={activeTab}
@@ -233,8 +348,17 @@ export default function App() {
         isLoggedIn={isLoggedIn}
         isAdmin={isAdmin}
         sessionExpiresAt={sessionExpiresAt}
+        highContrastLight={highContrastLight}
+        onToggleHighContrast={toggleHighContrast}
+        onOpenUpload={() => {
+          if (!isLoggedIn) {
+            setShowLoginModal(true);
+          } else {
+            setShowUploadWizard(true);
+          }
+        }}
         onLogin={() => setShowLoginModal(true)}
-        onLogout={() => handleLogout()}
+        onLogout={() => handleLogout(false)}
         onOpenHelp={() => {
           fetchDepartments();
           setShowHelpModal(true);
@@ -242,12 +366,14 @@ export default function App() {
       />
 
       {/* Main Body Canvas */}
-      <div className="w-full px-3 sm:px-4 lg:px-4 xl:px-8 py-3.5 flex-1 flex flex-col">
+      <div className={`w-full flex-1 flex flex-col ${['admin', 'security', 'team', 'activity', 'themes'].includes(activeTab) ? 'p-0' : 'px-2.5 sm:px-3.5 lg:px-8 py-2 sm:py-3 lg:py-4'}`}>
         {(activeTab === 'repository' || activeTab === 'dashboard') && (
           <RepositoryCard
             files={files}
+            activeTheme={activeTheme}
             onSelectFile={handleSelectFile}
             onRefresh={fetchVaultFiles}
+            onUpdateFileMeta={handleUpdateFileMeta}
             onOpenUpload={() => {
               if (!isLoggedIn) {
                 setShowLoginModal(true);
@@ -259,7 +385,7 @@ export default function App() {
           />
         )}
 
-        {(activeTab === 'admin' || activeTab === 'security' || activeTab === 'team' || activeTab === 'activity') && (
+        {(activeTab === 'admin' || activeTab === 'security' || activeTab === 'team' || activeTab === 'activity' || activeTab === 'themes') && (
           <AdminDashboardView
             files={files}
             isMasterAdmin={isMasterAdmin}
@@ -271,58 +397,54 @@ export default function App() {
                 ? 'team'
                 : activeTab === 'activity'
                 ? 'activity'
+                : activeTab === 'themes'
+                ? 'themes'
                 : 'overview'
             }
             onSelectFile={handleSelectFile}
             onRefreshFiles={fetchVaultFiles}
             onBackToRepository={() => setActiveTab('repository')}
+            onThemeUpdated={fetchSiteThemes}
           />
         )}
       </div>
 
       {/* ================= COMPACT MODERN FOOTER ================= */}
-      <footer className="w-full py-2.5 mt-auto bg-white/90 backdrop-blur-md border-t border-slate-200/80 shrink-0 z-10 transition-colors">
-        <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-center sm:justify-start text-center sm:text-left">
-          {/* Copyright & Campus Repository Info */}
-          <div className="text-[11px] text-slate-600 font-medium">
+      <footer className="w-full py-1 lg:py-2.5 mt-auto bg-white/95 backdrop-blur-md border-t border-slate-200/80 shrink-0 z-10 transition-colors">
+        <div className="max-w-[1440px] mx-auto w-full px-3.5 sm:px-5 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-0.5 sm:gap-2 text-center sm:text-left text-[9.5px] lg:text-[11px]">
+          <div className="text-slate-600 font-medium">
             <span>
               Designed & Built by{' '}
               <strong className="text-blue-700 font-bold">Akish | 阿奇什 | அகிஷ்</strong>
             </span>
           </div>
+          <div className="text-slate-500 font-medium">
+            AES-256 Encrypted Study Notes • 48h Auto-Purge Repository
+          </div>
         </div>
       </footer>
 
-      {/* Help & User Guide Modal (Includes Merged Terms of Service & Campus Guidelines) */}
+      {/* Help & User Guide Modal */}
       <HelpGuideModal
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
         departments={departments}
       />
 
-      {/* In-Browser Session Expired Modal with Page Blur */}
+      {/* In-Browser Session Expired Modal */}
       {showSessionExpiredModal && (
         <div className="fixed inset-0 z-[120] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white border border-slate-200/90 rounded-3xl max-w-md w-full shadow-2xl p-6 sm:p-7 text-center relative overflow-hidden flex flex-col items-center">
-            {/* Top accent gradient stripe */}
             <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600" />
-
-            {/* Circular warning icon */}
             <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-4 text-amber-600 shadow-inner">
               <span className="material-symbols-outlined text-3xl">timer_off</span>
             </div>
-
-            {/* Modal Title */}
             <h3 className="text-xl font-extrabold text-slate-900 tracking-tight mb-2">
               Session Expired
             </h3>
-
-            {/* Modal Description */}
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
               Your 15-minute terminal session has expired due to inactivity for institutional campus data security.
             </p>
-
-            {/* Continue Button */}
             <button
               type="button"
               onClick={() => {
@@ -343,6 +465,7 @@ export default function App() {
         currentUser={currentUser}
         userRole={`${userDepartment} Dept`}
         isLoggedIn={isLoggedIn}
+        mascotOverride={activeTheme?.mascotOverride}
         onLogin={() => setShowLoginModal(true)}
         onOpenUploadWizard={() => {
           if (!isLoggedIn) {
@@ -396,7 +519,7 @@ export default function App() {
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onLogout={handleLogout}
+        onLogout={() => handleLogout(true)}
         onLoginSuccess={handleLoginSuccess}
       />
     </div>

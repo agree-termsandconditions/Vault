@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Employee, DepartmentConfig, DEFAULT_DEPARTMENTS, PasswordResetRequest } from '../types';
+import { apiFetch } from '../utils/apiFetch';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -59,7 +60,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
   const [department, setDepartment] = useState('Science');
   const [userType, setUserType] = useState<'regular' | 'superuser' | 'admin'>('regular');
 
-  // User Details Editor Modal (with embedded Set Password) State
+  // User Details Editor Modal (with embedded Set Password & Access Toggles) State
   const [editUserTarget, setEditUserTarget] = useState<Employee | null>(null);
   const [editUserEmpId, setEditUserEmpId] = useState('');
   const [editUserFullName, setEditUserFullName] = useState('');
@@ -67,6 +68,10 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
   const [editUserDept, setEditUserDept] = useState('Science');
   const [editUserDesignation, setEditUserDesignation] = useState('');
   const [editUserRole, setEditUserRole] = useState<'regular' | 'superuser' | 'admin' | 'master_admin'>('regular');
+  const [editUserPasswordless, setEditUserPasswordless] = useState<boolean>(false);
+  const [editUserPrinter, setEditUserPrinter] = useState<boolean>(false);
+  const [editUserActivated, setEditUserActivated] = useState<boolean>(true);
+  const [editUserQuickPin, setEditUserQuickPin] = useState<string>('');
   const [showInlinePasswordEditor, setShowInlinePasswordEditor] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
@@ -98,7 +103,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch('/api/employees');
+      const res = await apiFetch('/api/employees');
       const data = await res.json();
       if (data.success) setEmployees(data.employees);
     } catch (e) {}
@@ -106,7 +111,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
   const fetchResetRequests = async () => {
     try {
-      const res = await fetch('/api/admin/password-reset-requests');
+      const res = await apiFetch('/api/admin/password-reset-requests');
       const data = await res.json();
       if (data.success && Array.isArray(data.requests)) {
         setResetRequests(data.requests);
@@ -116,7 +121,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
   const handleTriggerResetToken = async (empIdStr: string, reqId?: number) => {
     try {
-      const res = await fetch('/api/admin/trigger-reset-token', {
+      const res = await apiFetch('/api/admin/trigger-reset-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -143,7 +148,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
   const handleRevokeResetRequest = async (empIdStr: string, reqId?: number) => {
     try {
-      const res = await fetch('/api/admin/reject-reset-request', {
+      const res = await apiFetch('/api/admin/reject-reset-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -170,7 +175,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
   const fetchDepartments = async () => {
     try {
-      const res = await fetch('/api/departments');
+      const res = await apiFetch('/api/departments');
       const data = await res.json();
       if (data.success && Array.isArray(data.departments)) {
         setDepartments(data.departments);
@@ -183,7 +188,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     e.preventDefault();
     if (!newDeptName.trim() || !newDeptShortcut.trim()) return;
     try {
-      const res = await fetch('/api/departments/add', {
+      const res = await apiFetch('/api/departments/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -204,7 +209,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
   const handleSaveDeptShortcut = async (id: number) => {
     if (!editDeptName.trim() || !editDeptShortcut.trim()) return;
     try {
-      const res = await fetch('/api/departments/update', {
+      const res = await apiFetch('/api/departments/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -226,7 +231,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
   const handleDeleteDepartment = async (id: number, name: string) => {
     if (name.toLowerCase() === 'others') return;
     try {
-      const res = await fetch('/api/departments/delete', {
+      const res = await apiFetch('/api/departments/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -243,7 +248,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
   // Reallocate / Map Employee Department
   const handleChangeEmployeeDept = async (empIdNum: number, newDept: string) => {
     try {
-      const res = await fetch('/api/employees/department', {
+      const res = await apiFetch('/api/employees/department', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: empIdNum, department: newDept }),
@@ -261,7 +266,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     if (!empId || !fullName) return;
 
     try {
-      const res = await fetch('/api/employees/add', {
+      const res = await apiFetch('/api/employees/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -290,38 +295,58 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     } catch (e) {}
   };
 
-  const handleToggleEmployee = async (id: number, field: 'role' | 'passwordless' | 'printer' | 'admin') => {
+  const handleToggleEmployee = async (
+    id: number,
+    field: 'role' | 'passwordless' | 'printer' | 'admin' | 'activated' | 'active',
+    roleValue?: 'regular' | 'superuser' | 'admin' | 'master_admin'
+  ) => {
     try {
-      const res = await fetch('/api/employees/toggle', {
+      const res = await apiFetch('/api/employees/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, field }),
+        body: JSON.stringify({ id, field, role_value: roleValue }),
       });
       const data = await res.json();
       if (data.success) {
-        fetchEmployees();
+        if (Array.isArray(data.employees)) {
+          setEmployees(data.employees);
+        } else {
+          fetchEmployees();
+        }
         if (data.employee) {
-          setEditUserTarget((prev) =>
-            prev && prev.id === id ? { ...prev, ...data.employee } : prev
-          );
+          const emp = data.employee as Employee;
+          setEditUserTarget((prev) => (prev && prev.id === id ? { ...prev, ...emp } : prev));
           if (editUserTarget && editUserTarget.id === id) {
-            setEditUserRole(data.employee.user_type);
+            setEditUserRole(emp.user_type);
+            setEditUserPasswordless(Boolean(emp.passwordless_allowed));
+            setEditUserPrinter(Boolean(emp.printer_access_allowed));
+            setEditUserActivated(Boolean(emp.is_activated));
+          }
+          if (field === 'admin' || field === 'role') {
+            showToast(
+              `Updated ${emp.full_name} (${emp.emp_id}) role to ${emp.user_type.toUpperCase()}`
+            );
+          } else if (field === 'passwordless') {
+            showToast(
+              `${emp.full_name}: Public Upload Right is now ${emp.passwordless_allowed ? 'ALLOWED' : 'PIN REQUIRED'}`
+            );
+          } else if (field === 'printer') {
+            showToast(
+              `${emp.full_name}: Printer Access is now ${emp.printer_access_allowed ? 'ALLOWED' : 'PIN REQUIRED'}`
+            );
+          } else if (field === 'activated') {
+            showToast(
+              `${emp.full_name}: Activation status set to ${emp.is_activated ? '1 (Activated)' : '0 (Not Activated)'}`
+            );
           }
         }
-        if (field === 'admin' && data.employee) {
-          showToast(
-            data.employee.user_type === 'admin'
-              ? `Promoted ${data.employee.full_name} (${data.employee.emp_id}) to Campus Admin.`
-              : `Removed Admin privileges from ${data.employee.full_name} (${data.employee.emp_id}).`
-          );
-        }
       }
-    } catch (e) {}
+    } catch (_e) {}
   };
 
   const handleDeleteEmployee = async (id: number) => {
     try {
-      const res = await fetch('/api/employees/delete', {
+      const res = await apiFetch('/api/employees/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -331,7 +356,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
         fetchEmployees();
         showToast('Removed faculty member from directory.');
       }
-    } catch (e) {}
+    } catch (_e) {}
   };
 
   const openEditUserModal = (emp: Employee) => {
@@ -342,6 +367,10 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     setEditUserDept(emp.department);
     setEditUserDesignation(emp.designation);
     setEditUserRole(emp.user_type);
+    setEditUserPasswordless(Boolean(emp.passwordless_allowed));
+    setEditUserPrinter(Boolean(emp.printer_access_allowed));
+    setEditUserActivated(emp.is_activated !== undefined ? Boolean(emp.is_activated) : true);
+    setEditUserQuickPin(emp.quick_pin || '');
     setShowInlinePasswordEditor(false);
     setNewPassword('');
   };
@@ -350,8 +379,15 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
     e.preventDefault();
     if (!editUserTarget) return;
 
+    if (editUserQuickPin.trim()) {
+      if (!/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{6}$/.test(editUserQuickPin.trim())) {
+        showToast('Quick Login PIN must be exactly 6 alphanumeric characters (at least 1 letter and 1 number, no special characters).');
+        return;
+      }
+    }
+
     try {
-      const res = await fetch('/api/employees/update', {
+      const res = await apiFetch('/api/employees/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -362,25 +398,33 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
           department: editUserDept,
           designation: editUserDesignation.trim(),
           user_type: editUserRole,
+          passwordless_allowed: editUserPasswordless,
+          printer_access_allowed: editUserPrinter,
+          is_activated: editUserActivated,
+          quick_pin: editUserQuickPin.trim() || undefined,
           new_password: showInlinePasswordEditor && newPassword.trim() ? newPassword.trim() : undefined,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        showToast(data.message || `Updated details for ${editUserFullName}`);
+        showToast(data.message || `Updated details & permissions for ${editUserFullName}`);
+        if (Array.isArray(data.employees)) {
+          setEmployees(data.employees);
+        } else {
+          fetchEmployees();
+        }
         setEditUserTarget(null);
         setShowInlinePasswordEditor(false);
         setNewPassword('');
-        fetchEmployees();
       }
-    } catch (e) {}
+    } catch (_e) {}
   };
 
   const handleResetPasswordSubmit = async () => {
     if (!editUserTarget || !newPassword.trim()) return;
 
     try {
-      const res = await fetch('/api/employees/reset-password', {
+      const res = await apiFetch('/api/employees/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -416,9 +460,20 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows: any[] = XLSX.utils.sheet_to_json(firstSheet);
+      // Prototype Pollution Guard: sanitize parsed spreadsheet rows
+      const safeRows = rows.map((r) => {
+        if (!r || typeof r !== 'object') return {};
+        const safe: Record<string, any> = {};
+        for (const [k, v] of Object.entries(r)) {
+          if (k !== '__proto__' && k !== 'constructor' && k !== 'prototype') {
+            safe[k] = v;
+          }
+        }
+        return safe;
+      });
 
-      if (rows.length > 0) {
-        const formattedLines = rows
+      if (safeRows.length > 0) {
+        const formattedLines = safeRows
           .map((r) => {
             const id = r['Emp ID'] || r.emp_id || r.EmpID || r.ID || '';
             const name = r['Full Name'] || r.full_name || r.FullName || r.Name || '';
@@ -475,7 +530,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
     setBulkUploading(true);
     try {
-      const res = await fetch('/api/employees/bulk', {
+      const res = await apiFetch('/api/employees/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ employees: parsedRecords }),
@@ -936,7 +991,31 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
               </button>
 
               {showExportMenu && (
-                <div className="absolute right-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 z-30 space-y-1 text-xs">
+                <div className="absolute right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 z-30 space-y-1 text-xs">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await apiFetch('/api/db/export?type=users');
+                        if (res.ok) {
+                          const blob = await res.blob();
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'users_db.json';
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          setTimeout(() => URL.revokeObjectURL(url), 5000);
+                        }
+                      } catch {}
+                      setShowExportMenu(false);
+                      showToast('Downloaded Shared Users DB (users_db.json)');
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg font-bold text-slate-800 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2 cursor-pointer transition"
+                  >
+                    <Download className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>Shared Users DB (.JSON)</span>
+                  </button>
                   <button
                     onClick={handleExportXLSX}
                     className="w-full text-left px-3 py-2 rounded-lg font-bold text-slate-800 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2 cursor-pointer transition"
@@ -1018,7 +1097,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
         {/* Directory Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[800px]">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-extrabold text-[10px] bg-slate-50/60">
                 <th className="py-2.5 px-3">Emp ID</th>
@@ -1043,27 +1122,24 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
                     </div>
                   </td>
 
-                  {/* Activated Status: Green Box with 1 (Activated) / Yellow Box with 0 (Not Activated) */}
+                  {/* Activated Status: Clickable Green Box with 1 (Activated) / Yellow Box with 0 (Not Activated) */}
                   <td className="py-3 px-3 text-center">
-                    {emp.is_activated ? (
-                      <div className="inline-flex items-center justify-center gap-1.5">
-                        <span
-                          className="w-6 h-6 rounded-md bg-emerald-500 text-white font-mono font-extrabold text-xs inline-flex items-center justify-center shadow-2xs border border-emerald-600"
-                          title="Activated (1): User changed default password and set 6-char Quick PIN"
-                        >
-                          1
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center justify-center gap-1.5">
-                        <span
-                          className="w-6 h-6 rounded-md bg-amber-400 text-slate-950 font-mono font-extrabold text-xs inline-flex items-center justify-center shadow-2xs border border-amber-500"
-                          title={`Not Activated (0): Must login with ${emp.emp_id}@2027 and change password immediately`}
-                        >
-                          0
-                        </span>
-                      </div>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleEmployee(emp.id, 'activated')}
+                      className={`w-7 h-7 rounded-md font-mono font-extrabold text-xs inline-flex items-center justify-center shadow-2xs border transition cursor-pointer ${
+                        emp.is_activated
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-amber-400 hover:bg-amber-500 text-slate-950 border-amber-500'
+                      }`}
+                      title={
+                        emp.is_activated
+                          ? 'Activated (1) — Click to toggle to 0 (Require first-login password setup)'
+                          : `Not Activated (0) — Click to toggle to 1 (Activated)`
+                      }
+                    >
+                      {emp.is_activated ? '1' : '0'}
+                    </button>
                   </td>
 
                   {/* Allocated Department Mapper Dropdown */}
@@ -1084,38 +1160,33 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
 
                   <td className="py-3 px-3 text-slate-600">{emp.designation}</td>
 
-                  {/* Role Badge & Toggle */}
+                  {/* Role / User Type Selector Dropdown */}
                   <td className="py-3 px-3">
-                    {emp.user_type === 'master_admin' || emp.is_master_admin ? (
-                      <span
-                        className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase border bg-amber-50 text-amber-800 border-amber-300 inline-flex items-center gap-1"
-                        title="Master Admin Account (Full Governance Authority)"
-                      >
-                        <ShieldCheck className="w-3 h-3 text-amber-600" />
-                        MASTER ADMIN
-                      </span>
-                    ) : emp.user_type === 'admin' || emp.is_admin ? (
-                      <span
-                        className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase border bg-blue-50 text-blue-700 border-blue-200 inline-flex items-center gap-1"
-                        title="Campus Admin Account"
-                      >
-                        <ShieldCheck className="w-3 h-3 text-blue-600" />
-                        ADMIN
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => handleToggleEmployee(emp.id, 'role')}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase border transition cursor-pointer inline-flex items-center gap-1 ${
-                          emp.user_type === 'superuser'
-                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
-                            : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-                        }`}
-                        title="Click to toggle Regular / Superuser role (Superuser enables all privileges automatically)"
-                      >
-                        <ShieldCheck className="w-3 h-3" />
-                        {emp.user_type}
-                      </button>
-                    )}
+                    <select
+                      value={emp.user_type}
+                      onChange={(e) =>
+                        handleToggleEmployee(
+                          emp.id,
+                          'role',
+                          e.target.value as 'regular' | 'superuser' | 'admin' | 'master_admin'
+                        )
+                      }
+                      className={`px-2.5 py-1 rounded-lg text-[10.5px] font-extrabold uppercase border transition cursor-pointer focus:outline-none ${
+                        emp.user_type === 'master_admin'
+                          ? 'bg-amber-50 text-amber-800 border-amber-300'
+                          : emp.user_type === 'admin'
+                          ? 'bg-blue-50 text-blue-700 border-blue-200'
+                          : emp.user_type === 'superuser'
+                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          : 'bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                      title="Change User Type / Role (Regular, Superuser, Admin, Master Admin)"
+                    >
+                      <option value="regular">REGULAR</option>
+                      <option value="superuser">SUPERUSER</option>
+                      <option value="admin">ADMIN</option>
+                      <option value="master_admin">MASTER ADMIN</option>
+                    </select>
                   </td>
 
                   {/* Public Upload Right */}
@@ -1358,24 +1429,98 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
                 </div>
               </div>
 
-              {!editUserTarget.is_master_admin && editUserTarget.user_type !== 'master_admin' && (
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Role / Access Privilege</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Role / User Type</label>
                   <select
                     value={editUserRole}
-                    onChange={(e) =>
-                      setEditUserRole(e.target.value as 'regular' | 'superuser' | 'admin' | 'master_admin')
-                    }
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none cursor-pointer"
+                    onChange={(e) => {
+                      const nextRole = e.target.value as 'regular' | 'superuser' | 'admin' | 'master_admin';
+                      setEditUserRole(nextRole);
+                      if (nextRole === 'superuser' || nextRole === 'admin' || nextRole === 'master_admin') {
+                        setEditUserPasswordless(true);
+                        setEditUserPrinter(true);
+                      }
+                    }}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none cursor-pointer"
                   >
                     <option value="regular">Regular User (6-Char PIN Required)</option>
-                    <option value="superuser">Superuser (Public Upload & Printer Access Enabled)</option>
-                    {isMasterAdmin && (
-                      <option value="admin">Campus Admin (Full Admin Console & Governance)</option>
-                    )}
+                    <option value="superuser">Superuser (Public Upload & Printer Enabled)</option>
+                    <option value="admin">Campus Admin (Admin Console Governance)</option>
+                    <option value="master_admin">Master Admin (Full Authority)</option>
                   </select>
                 </div>
-              )}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">6-Char Quick Login PIN (Alphanumeric)</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="e.g. JHS123"
+                    value={editUserQuickPin}
+                    onChange={(e) => setEditUserQuickPin(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Explicit User Access & Activation Toggles Inside Modal */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                <span className="text-[10.5px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                  User Access Rights & Account Activation
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditUserPasswordless((v) => !v)}
+                    className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-between cursor-pointer transition ${
+                      editUserPasswordless
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                        : 'bg-white border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Public Upload</span>
+                    </span>
+                    <span className="text-[10px] font-extrabold uppercase">
+                      {editUserPasswordless ? 'Allowed' : 'PIN Req'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditUserPrinter((v) => !v)}
+                    className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-between cursor-pointer transition ${
+                      editUserPrinter
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                        : 'bg-white border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Printer className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Printer Access</span>
+                    </span>
+                    <span className="text-[10px] font-extrabold uppercase">
+                      {editUserPrinter ? 'Allowed' : 'PIN Req'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditUserActivated((v) => !v)}
+                    className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-between cursor-pointer transition ${
+                      editUserActivated
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                        : 'bg-amber-50 border-amber-300 text-amber-900'
+                    }`}
+                  >
+                    <span>Activated</span>
+                    <span className="font-mono font-extrabold text-xs">
+                      {editUserActivated ? '1 (Active)' : '0 (Pending)'}
+                    </span>
+                  </button>
+                </div>
+              </div>
 
               {/* Embedded Set Password Panel inside User Details Editor */}
               {showInlinePasswordEditor && (
@@ -1543,7 +1688,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
                   <label className="text-xs font-bold text-slate-700">Employee ID *</label>
                   <input
                     type="text"
-                    placeholder="EMP-3001"
+                    placeholder="e.g. JHS1234"
                     required
                     value={empId}
                     onChange={(e) => setEmpId(e.target.value)}
@@ -1634,7 +1779,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
                   {empId.trim() ? `${empId.trim()}@2027` : 'EMP-ID@2027'}
                 </div>
                 <p className="text-[10px] text-amber-900 leading-snug">
-                  Upon first login with this default password, the employee must immediately set a Google-policy password and a 6-char Quick Login PIN, changing their status to a green box with <strong>1</strong>.
+                  Upon first login with this default password, the employee must immediately set a secure password and a 6-char Quick Login PIN, changing their status to a green box with <strong>1</strong>.
                 </p>
               </div>
 

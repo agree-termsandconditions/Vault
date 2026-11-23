@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../utils/apiFetch';
 import {
   X,
   AlertCircle,
@@ -44,7 +45,7 @@ export interface PasswordResetModalProps {
 export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   isOpen,
   initialMode = 'request',
-  initialEmpId = 'EMP-1003',
+  initialEmpId = '',
   firstLoginEmployee = null,
   onClose,
   onBackToLogin,
@@ -59,6 +60,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   const [resetTokenInput, setResetTokenInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [quickPinInput, setQuickPinInput] = useState('');
+  const [isPassReadOnly, setIsPassReadOnly] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -73,12 +75,14 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
-      setEmpId(firstLoginEmployee?.emp_id || initialEmpId || 'EMP-1003');
+      setEmpId(firstLoginEmployee?.emp_id || initialEmpId || '');
+      setNewPasswordInput('');
+      setQuickPinInput('');
       setErrorMessage(null);
       setSuccessMessage(null);
       if (initialMode === 'first_login' && firstLoginEmployee) {
         setSuccessMessage(
-          `First login detected for ${firstLoginEmployee.full_name} (${firstLoginEmployee.emp_id}). Please set your permanent Google-policy password and 6-character Quick Login PIN to activate your account.`
+          `First login detected for ${firstLoginEmployee.full_name} (${firstLoginEmployee.emp_id}). Please set your new password first and sign in again to continue.`
         );
       }
     }
@@ -91,7 +95,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
     const checkStatus = async () => {
       try {
-        const res = await fetch(
+        const res = await apiFetch(
           `/api/auth/password-reset-status/${encodeURIComponent(empId.trim())}`
         );
         const data = await res.json();
@@ -116,7 +120,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Live Google Password Policy Checks
+  // Live Institutional Password Policy Checks
   const passChecks = {
     minLength: newPasswordInput.length >= 8,
     hasUpper: /[A-Z]/.test(newPasswordInput),
@@ -126,7 +130,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
     notDefault:
       newPasswordInput.trim().toLowerCase() !== `${empId.trim().toLowerCase()}@2027`,
   };
-  const isGooglePolicyMet =
+  const isPasswordPolicyMet =
     passChecks.minLength &&
     passChecks.hasUpper &&
     passChecks.hasLower &&
@@ -134,7 +138,8 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
     passChecks.hasSymbol &&
     passChecks.notDefault;
 
-  const isQuickPinValid = quickPinInput.trim().length === 6;
+  const isQuickPinValid = (pin: string) =>
+    /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{6}$/.test(pin.trim());
 
   const handleRequestPasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,7 +154,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/auth/request-password-reset', {
+      const res = await apiFetch('/api/auth/request-password-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -193,20 +198,22 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
       setErrorMessage('Employee ID, Temporary Reset Token, and New Password are required.');
       return;
     }
-    if (!isGooglePolicyMet) {
+    if (!isPasswordPolicyMet) {
       setErrorMessage(
-        'Please ensure your new password meets all Google Password Policy requirements below.'
+        'Please ensure your new password meets all security policy requirements below.'
       );
       return;
     }
-    if (cleanPin && cleanPin.length !== 6) {
-      setErrorMessage('Quick Login PIN must be exactly 6 characters (or leave blank if already set).');
+    if (cleanPin && !isQuickPinValid(cleanPin)) {
+      setErrorMessage(
+        'Quick Login PIN must be exactly 6 alphanumeric characters (at least 1 letter and 1 number, no special characters).'
+      );
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/auth/complete-password-reset', {
+      const res = await apiFetch('/api/auth/complete-password-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -223,7 +230,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         setQuickPinInput('');
         // Force logout any current session and require re-login with the new password
         if (onForceLogout) onForceLogout();
-        setSuccessMessage('Password changed successfully , please login/signin again to continue');
+        setSuccessMessage('Password changed successfully! Please sign in with your new password to continue.');
         setMode('relogin_required');
       } else {
         setErrorMessage(data.error || 'Invalid or expired Temporary Reset Token.');
@@ -244,28 +251,28 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
     const cleanPass = newPasswordInput.trim();
     const cleanPin = quickPinInput.trim();
 
-    if (!isGooglePolicyMet) {
+    if (!isPasswordPolicyMet) {
       setErrorMessage(
-        'Your new regular password must satisfy all Google Password Policy rules.'
+        'Your new password must satisfy all password policy rules below.'
       );
       return;
     }
-    if (!isQuickPinValid) {
+    if (cleanPin && !isQuickPinValid(cleanPin)) {
       setErrorMessage(
-        'Please set your 6-character Quick Login PIN/password (created on first login only).'
+        'Quick Login PIN must be exactly 6 alphanumeric characters (at least 1 letter and 1 number, no special characters).'
       );
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/auth/first-login-activate', {
+      const res = await apiFetch('/api/auth/first-login-activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           emp_id: cleanId,
           new_password: cleanPass,
-          quick_pin: cleanPin,
+          quick_pin: cleanPin || undefined,
           activation_token: firstLoginEmployee?.activation_token,
         }),
       });
@@ -273,9 +280,9 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
       if (res.ok && data.success) {
         setNewPasswordInput('');
         setQuickPinInput('');
-        // Do NOT auto-login; forcibly sign out and require login again to continue
+        // Do NOT auto-login; forcibly sign out any prior session and require login again to continue
         if (onForceLogout) onForceLogout();
-        setSuccessMessage('Password changed successfully , please login/signin again to continue');
+        setSuccessMessage('Password changed successfully! Please sign in with your new password to continue.');
         setMode('relogin_required');
         return;
       }
@@ -331,7 +338,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             {mode === 'relogin_required'
               ? 'Password Changed — Sign In Again'
               : mode === 'first_login'
-              ? 'First-Login Account Activation'
+              ? 'First-Login Password Change Required'
               : mode === 'request'
               ? 'Request Password Reset'
               : 'Redeem Temporary Reset Token'}
@@ -340,7 +347,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             {mode === 'relogin_required'
               ? 'Account Status Updated to Activated (1) • Mandatory Re-Authentication'
               : mode === 'first_login'
-              ? 'Immediate Password Change (Google Policy) + 6-Char Quick Login PIN'
+              ? 'Change Initial Password First & Sign In Again to Continue'
               : 'Master Admin Temporary Reset Token Authorization Flow'}
           </p>
         </div>
@@ -353,10 +360,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             </div>
             <div className="space-y-1">
               <p className="text-sm font-extrabold text-emerald-950 leading-snug">
-                Password changed successfully , please login/signin again to continue
+                Password changed successfully! Please sign in with your new password to continue.
               </p>
               <p className="text-xs text-emerald-800 font-medium">
-                Employee ID <strong className="font-mono">{empId}</strong> is now activated (<span className="px-1.5 py-0.2 rounded bg-emerald-600 text-white font-mono font-bold text-[10px]">1</span>). Please sign out and log in again with your new password or 6-character Quick PIN.
+                Employee ID <strong className="font-mono">{empId}</strong> is now activated (<span className="px-1.5 py-0.2 rounded bg-emerald-600 text-white font-mono font-bold text-[10px]">1</span>). Please sign in again with your new password to continue.
               </p>
             </div>
             <button
@@ -364,8 +371,8 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
               onClick={handleLogoutAndReturnToSignIn}
               className="w-full h-10 bg-[#0e3ec7] hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
-              <LogOut className="w-4 h-4" />
-              <span>Logout / Sign Out & Login Again</span>
+              <KeyRound className="w-4 h-4" />
+              <span>Sign In with New Password</span>
             </button>
           </div>
         )}
@@ -424,7 +431,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
         {/* ================= 1. REQUEST PASSWORD RESET ================= */}
         {mode === 'request' && (
-          <form onSubmit={handleRequestPasswordReset} className="space-y-3">
+          <form onSubmit={handleRequestPasswordReset} className="space-y-3" autoComplete="off">
             <div>
               <label className="text-xs font-extrabold text-slate-700 flex items-center justify-between mb-1">
                 <span className="flex items-center gap-1.5">
@@ -435,10 +442,18 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
               </label>
               <input
                 type="text"
+                name="campus_reset_emp_id"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                data-lpignore="true"
+                data-form-type="other"
+                data-1p-ignore="true"
                 required
                 value={empId}
                 onChange={(e) => setEmpId(e.target.value)}
-                placeholder="e.g. EMP-1002 or EMP-1003"
+                placeholder="e.g. JHS1234 or JHSXXXX"
                 className="w-full h-10 bg-slate-50 focus:bg-white border border-slate-300 focus:border-[#0e3ec7] rounded-xl px-3.5 text-xs font-extrabold text-slate-900 outline-none transition"
               />
             </div>
@@ -526,6 +541,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
           <form
             onSubmit={mode === 'first_login' ? handleFirstLoginActivate : handleRedeemResetToken}
             className="space-y-3"
+            autoComplete="off"
+            data-lpignore="true"
+            data-form-type="other"
+            data-1p-ignore="true"
           >
             <div>
               <label className="text-xs font-extrabold text-slate-700 flex items-center justify-between mb-1">
@@ -540,8 +559,13 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                 type="text"
                 required
                 readOnly={mode === 'first_login'}
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                data-1p-ignore="true"
                 value={empId}
                 onChange={(e) => setEmpId(e.target.value)}
+                placeholder="e.g. JHS1234 or JHSXXXX"
                 className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-3 text-xs font-mono font-extrabold text-slate-900 outline-none"
               />
             </div>
@@ -558,6 +582,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                 <input
                   type="text"
                   required
+                  autoComplete="off"
+                  data-lpignore="true"
+                  data-form-type="other"
+                  data-1p-ignore="true"
                   value={resetTokenInput}
                   onChange={(e) => setResetTokenInput(e.target.value.toUpperCase())}
                   placeholder="e.g. RST-8F4B2A"
@@ -566,12 +594,12 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
               </div>
             )}
 
-            {/* New Regular Password with Live Google Password Policy Checklist */}
+            {/* New Regular Password with Live Password Policy Checklist */}
             <div className="space-y-1.5">
               <label className="text-xs font-extrabold text-slate-700 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#0e3ec7]" />
-                  <span>New Regular Password (Google Policy) *</span>
+                  <span>New Regular Password *</span>
                 </span>
                 <button
                   type="button"
@@ -584,13 +612,19 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
               <input
                 type="text"
                 required
+                autoComplete="new-password"
+                data-lpignore="true"
+                data-form-type="other"
+                data-1p-ignore="true"
+                readOnly={isPassReadOnly}
+                onFocus={() => setIsPassReadOnly(false)}
                 value={newPasswordInput}
                 onChange={(e) => setNewPasswordInput(e.target.value)}
                 placeholder="Min 8 chars, A-Z, a-z, 0-9, symbol (!@#$)"
                 className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-300 focus:border-[#0e3ec7] rounded-xl px-3 text-xs font-mono text-slate-900 outline-none"
               />
 
-              {/* Google Password Policy Checklist */}
+              {/* Password Policy Checklist */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 grid grid-cols-2 gap-1.5 text-[10px] font-bold">
                 <div className={passChecks.minLength ? 'text-emerald-700' : 'text-slate-400'}>
                   {passChecks.minLength ? '✓' : '○'} 8+ Characters
@@ -610,13 +644,13 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
               </div>
             </div>
 
-            {/* 6-Character Quick Login PIN/Password (Created on First Login) */}
+            {/* 6-Character Quick Login PIN/Password (Optional on First Login) */}
             <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-3 space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-extrabold text-blue-950 flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-blue-600" />
                   <span>
-                    6-Char Quick Login PIN/Password {mode === 'first_login' ? '*' : '(First Login)'}
+                    6-Char Quick Login PIN (Optional)
                   </span>
                 </label>
                 <span className="text-[10px] font-mono font-bold text-blue-700">
@@ -624,15 +658,18 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                 </span>
               </div>
               <p className="text-[10px] text-slate-600 leading-snug">
-                Created on first login only. Once activated, you can sign in using <strong>either</strong> your regular password <strong>or</strong> this 6-character Quick PIN.
+                Optional 6-character alphanumeric PIN (must contain at least 1 letter and 1 number, e.g. JHS123).
               </p>
               <input
                 type="text"
-                required={mode === 'first_login'}
                 maxLength={6}
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                data-1p-ignore="true"
                 value={quickPinInput}
                 onChange={(e) => setQuickPinInput(e.target.value.slice(0, 6))}
-                placeholder="Enter 6-char Quick PIN (e.g. 789456)"
+                placeholder="6-char alphanumeric PIN (e.g. JHS123)"
                 className="w-full h-9 bg-white border border-blue-300 focus:border-[#0e3ec7] rounded-xl px-3 text-xs font-mono font-extrabold tracking-widest text-slate-900 outline-none"
               />
             </div>

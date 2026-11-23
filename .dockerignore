@@ -1,7 +1,10 @@
-node_modules
-dist
 .git
-.vscode
 .env
-EncryptedUploads
+.env.*
+.env.local
+EncryptedUploads/*
+!EncryptedUploads/.gitkeep
+certs/*
 *.log
+database/*.sqlite*
+database/*.json
