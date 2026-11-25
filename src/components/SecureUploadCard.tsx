@@ -15,7 +15,7 @@ export const SecureUploadCard: React.FC<SecureUploadCardProps> = ({
   onUploadSuccess,
   isLoggedIn,
   isSuperuser = true,
-  currentUser = 'Akish Kumar',
+  currentUser = 'Akish',
   onLogin,
 }) => {
   const [dragActive, setDragActive] = useState(false);

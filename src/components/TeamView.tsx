@@ -128,7 +128,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ isMasterAdmin: propIsMasterA
           emp_id: empIdStr,
           request_id: reqId,
           is_master_admin: true,
-          issued_by: localStorage.getItem('vault_current_user') || 'Akish Kumar (Master Admin)',
+          issued_by: localStorage.getItem('vault_current_user') || 'Akish (Master Admin)',
         }),
       });
       const data = await res.json();

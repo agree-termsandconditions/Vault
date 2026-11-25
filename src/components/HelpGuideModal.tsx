@@ -372,7 +372,7 @@ export const HelpGuideModal: React.FC<HelpGuideModalProps> = ({
                       Lead Developer & Architect
                     </span>
                     <div className="text-sm font-extrabold text-slate-900 mt-0.5">
-                      Akish K
+                      Akish
                     </div>
                     <div className="text-[11px] text-slate-500">
                       Notes Space Project Lead

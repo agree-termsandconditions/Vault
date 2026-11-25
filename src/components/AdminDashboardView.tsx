@@ -134,7 +134,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
   files,
   initialSection = 'overview',
   isMasterAdmin = true,
-  currentUser = 'Akish Kumar',
+  currentUser = 'Akish',
   onSelectFile,
   onRefreshFiles,
   onBackToRepository,

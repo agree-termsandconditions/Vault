@@ -3416,7 +3416,7 @@ app.post("/api/admin/trigger-reset-token", requireMasterAdmin, (req, res) => {
   const tokenPart = crypto.randomBytes(3).toString("hex").toUpperCase();
   const resetToken = `RST-${tokenPart}`;
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-  const issuerName = String(issued_by || "Akish Kumar (Master Admin)").trim();
+  const issuerName = String(issued_by || "Akish (Master Admin)").trim();
 
   emp.reset_request_status = "token_issued";
   emp.active_reset_token = resetToken;
