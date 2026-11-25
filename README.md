@@ -36,7 +36,7 @@ A high-performance, secure, multi-container campus study notes repository and do
 ### 1. Prerequisites
 - **Operating System:** Linux (Ubuntu 22.04 / 24.04 LTS recommended) or Docker Desktop
 - **Runtime:** Docker Engine 24+ & Docker Compose v2+
-- **Domain & DNS:** Point your `A` record (e.g. `akish.online`) to your server public IP
+- **Domain & DNS:** Point your `A` record (e.g. `akish.space`) to your server public IP
 
 ### 2. Clone the Repository
 ```bash
@@ -61,8 +61,8 @@ GEMINI_API_KEY=""
 Place your domain SSL certificates into `./certs/`:
 ```bash
 # Example if using Let's Encrypt / Certbot:
-sudo cp /etc/letsencrypt/live/akish.online/fullchain.pem ./certs/fullchain.pem
-sudo cp /etc/letsencrypt/live/akish.online/privkey.pem ./certs/privkey.pem
+sudo cp /etc/letsencrypt/live/akish.space/fullchain.pem ./certs/fullchain.pem
+sudo cp /etc/letsencrypt/live/akish.space/privkey.pem ./certs/privkey.pem
 sudo chmod 600 ./certs/privkey.pem
 ```
 
