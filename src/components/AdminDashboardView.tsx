@@ -641,7 +641,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <div className="h-16 px-5 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-sm shadow-blue-500/20 shrink-0">
-                  <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+                  <ShieldCheck className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h2 className="text-sm font-extrabold text-slate-900 tracking-tight leading-none">

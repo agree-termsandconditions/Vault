@@ -1,4 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import {
+  HelpCircle,
+  Clock,
+  LayoutGrid,
+  Shield,
+  ChevronRight,
+  LogOut,
+  LogIn,
+} from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
@@ -118,9 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center cursor-pointer shadow-2xs active:scale-95"
             aria-label="Help & Keyboard Shortcuts Guide"
           >
-            <span className="material-symbols-outlined text-[16px] sm:text-[17px] leading-none text-slate-600">
-              help_outline
-            </span>
+            <HelpCircle className="w-4 h-4 text-slate-600" />
           </button>
 
           {/* Institutional Session Auto-Logout Countdown Timer (when logged in on sm+) */}
@@ -133,13 +140,11 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
               aria-label={`Institutional Session Timeout: Auto-logout in ${formatTimer(secondsRemaining)}`}
             >
-              <span
-                className={`material-symbols-outlined text-[14px] sm:text-[15px] leading-none ${
+              <Clock
+                className={`w-3.5 h-3.5 shrink-0 ${
                   secondsRemaining <= 120 ? 'text-rose-600' : 'text-amber-700'
                 }`}
-              >
-                schedule
-              </span>
+              />
               <span className="leading-none text-[11px] sm:text-xs tracking-tight">{formatTimer(secondsRemaining)}</span>
             </div>
           )}
@@ -159,9 +164,11 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                   aria-label={isOnAdminView ? 'Return to Notes Board' : 'Open Admin Console'}
                 >
-                  <span className="material-symbols-outlined text-[15px] sm:text-[16px] leading-none">
-                    {isOnAdminView ? 'grid_view' : 'admin_panel_settings'}
-                  </span>
+                  {isOnAdminView ? (
+                    <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  ) : (
+                    <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  )}
                   <span className="hidden sm:inline leading-none text-[11.5px] sm:text-xs">
                     {isOnAdminView ? 'Notes' : 'Admin'}
                   </span>
@@ -202,19 +209,21 @@ export const Header: React.FC<HeaderProps> = ({
                       className="w-full py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 hover:bg-slate-50 text-slate-800 flex items-center justify-between transition cursor-pointer"
                     >
                       <span className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[16px] text-blue-600">
-                          {isOnAdminView ? 'grid_view' : 'admin_panel_settings'}
-                        </span>
+                        {isOnAdminView ? (
+                          <LayoutGrid className="w-4 h-4 text-blue-600 shrink-0" />
+                        ) : (
+                          <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+                        )}
                         <span>{isOnAdminView ? 'Notes Board' : 'Admin Console'}</span>
                       </span>
-                      <span className="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
                     </button>
                   )}
 
                   {sessionExpiresAt && (
                     <div className="bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-slate-600 font-semibold tabular-nums">
                       <span className="flex items-center gap-1.5 text-slate-500">
-                        <span className="material-symbols-outlined text-[14px]">schedule</span>
+                        <Clock className="w-3.5 h-3.5 shrink-0" />
                         <span>Auto-Logout</span>
                       </span>
                       <span className="font-bold text-slate-800">{formatTimer(secondsRemaining)}</span>
@@ -230,7 +239,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className="w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200/80 text-rose-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-95"
                     >
-                      <span className="material-symbols-outlined text-[16px]">logout</span>
+                      <LogOut className="w-4 h-4 shrink-0" />
                       <span>Sign Out</span>
                     </button>
                   </div>
@@ -244,9 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onLogin}
               className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs h-7.5 sm:h-8 px-2.5 sm:px-3 rounded-lg inline-flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
             >
-              <span className="material-symbols-outlined text-[14px] sm:text-[15px] leading-none text-sky-300">
-                login
-              </span>
+              <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 leading-none text-sky-300 shrink-0" />
               <span className="leading-none text-[11px] sm:text-xs">Sign In</span>
             </button>
           )}

@@ -1,6 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DEFAULT_DEPARTMENTS, DepartmentConfig, shortenTag } from '../types';
-import { X, Tag, GraduationCap, Layers, Sparkles } from 'lucide-react';
+import {
+  X,
+  Tag,
+  GraduationCap,
+  Layers,
+  Sparkles,
+  FilePlus,
+  FileEdit,
+  UploadCloud,
+  Link2,
+  Lock,
+  LogIn,
+  Pin,
+} from 'lucide-react';
 import { ProtectedShieldLockIcon, PublicGlobeCheckIcon } from './RepositoryCard';
 import { apiFetch } from '../utils/apiFetch';
 import { validateProtectionPin } from '../utils/pinValidation';
@@ -499,7 +512,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center gap-2.5 mb-2.5">
           <div className="w-7.5 h-7.5 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
-            <span className="material-symbols-outlined text-[17px]">note_add</span>
+            <FilePlus className="w-4 h-4 text-white" />
           </div>
           <div>
             <h2 className="text-base font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -526,7 +539,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">edit_note</span>
+            <FileEdit className="w-3.5 h-3.5" />
             <span>Write Note</span>
           </button>
           <button
@@ -541,7 +554,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">cloud_upload</span>
+            <UploadCloud className="w-3.5 h-3.5" />
             <span>Upload File</span>
           </button>
           <button
@@ -556,7 +569,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">link</span>
+            <Link2 className="w-3.5 h-3.5" />
             <span>Web Link</span>
           </button>
         </div>
@@ -564,7 +577,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
         {!isLoggedIn ? (
           <div className="py-8 px-4 text-center space-y-4 bg-slate-50 border border-slate-200/80 rounded-2xl my-2">
             <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center mx-auto shadow-sm">
-              <span className="material-symbols-outlined text-2xl">lock</span>
+              <Lock className="w-6 h-6 text-blue-700" />
             </div>
             <div className="space-y-1">
               <h3 className="font-extrabold text-slate-900 text-base">Sign In Required to Pin Notes</h3>
@@ -580,7 +593,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
               }}
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px]">login</span>
+              <LogIn className="w-4 h-4" />
               <span>Sign In to Campus Portal</span>
             </button>
           </div>
@@ -629,9 +642,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                   className="hidden"
                 />
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="material-symbols-outlined text-[26px] text-blue-600 shrink-0">
-                    cloud_upload
-                  </span>
+                  <UploadCloud className="w-6.5 h-6.5 text-blue-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 truncate">
                       {selectedFiles.length > 0
@@ -988,7 +999,7 @@ export const UploadWizardModal: React.FC<UploadWizardModalProps> = ({
                 disabled={isSubmitting}
                 className="px-5 py-2 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-[16px]">push_pin</span>
+                <Pin className="w-4 h-4 shrink-0" />
                 <span>
                   {isSubmitting
                     ? 'Publishing...'

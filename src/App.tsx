@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ClockAlert, ArrowRight } from 'lucide-react';
 import { VaultFile, DEFAULT_DEPARTMENTS, DepartmentConfig, SiteTheme } from './types';
 import { Header } from './components/Header';
 import { UploadWizardModal } from './components/UploadWizardModal';
@@ -437,7 +438,7 @@ export default function App() {
           <div className="bg-white border border-slate-200/90 rounded-3xl max-w-md w-full shadow-2xl p-6 sm:p-7 text-center relative overflow-hidden flex flex-col items-center">
             <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600" />
             <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-4 text-amber-600 shadow-inner">
-              <span className="material-symbols-outlined text-3xl">timer_off</span>
+              <ClockAlert className="w-8 h-8 text-amber-600" />
             </div>
             <h3 className="text-xl font-extrabold text-slate-900 tracking-tight mb-2">
               Session Expired
@@ -454,7 +455,7 @@ export default function App() {
               className="w-full py-3 px-5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-600/25 transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Continue as Visitor</span>
-              <span className="material-symbols-outlined text-lg">arrow_forward</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </button>
           </div>
         </div>

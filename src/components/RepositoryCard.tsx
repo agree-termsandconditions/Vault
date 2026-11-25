@@ -35,6 +35,15 @@ import {
   FileBadge,
   Tag,
   ChevronDown,
+  ShieldAlert,
+  FilePlus,
+  SearchX,
+  MoreVertical,
+  ExternalLink,
+  Copy,
+  Download,
+  Info,
+  Trash2,
 } from 'lucide-react';
 
 interface RepositoryCardProps {
@@ -850,7 +859,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
       {isSearchRestricted ? (
         <div className="text-center py-14 px-4 bg-rose-50/70 border border-rose-200 rounded-2xl text-xs space-y-2.5 flex flex-col items-center">
           <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-700">
-            <span className="material-symbols-outlined text-[24px]">gpp_bad</span>
+            <ShieldAlert className="w-6 h-6" />
           </div>
           <p className="text-rose-950 font-extrabold text-sm">
             Campus Student Safety Policy — Restricted Search Blocked
@@ -868,7 +877,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
       ) : filteredFiles.length === 0 && !isFiltering ? (
         <div className="text-center py-12 text-slate-500 text-xs space-y-3 flex flex-col items-center">
           <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
-            <span className="material-symbols-outlined text-[28px]">folder_open</span>
+            <FolderOpen className="w-7 h-7" />
           </div>
           <p className="text-slate-900 font-bold text-sm">No notes pinned yet</p>
           <p className="text-slate-500">Pin your first study note or share a website link to get started.</p>
@@ -880,9 +889,9 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
               >
                 <StickedTape isEven={true} />
                 <div className="w-10 h-10 rounded-2xl bg-blue-50 group-hover:bg-blue-100 text-blue-700 flex items-center justify-center mb-2 transition-transform duration-200 group-hover:scale-110 border border-blue-200/80 opacity-100">
-                  <span className="material-symbols-outlined text-[22px] leading-none text-blue-700">note_add</span>
+                  <FilePlus className="w-5.5 h-5.5 text-blue-700" />
                 </div>
-                <p className="font-hand font-bold text-slate-950 text-[20px] leading-tight mb-1 group-hover:text-blue-700 transition-colors">
+                <p className="font-hand font-bold text-slate-950 text-[18px] leading-tight mb-1 group-hover:text-blue-700 transition-colors">
                   Pin New Note
                 </p>
                 <p className="text-[11px] text-slate-600 font-medium max-w-[145px] leading-snug">
@@ -895,7 +904,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
       ) : filteredFiles.length === 0 && isFiltering ? (
         <div className="text-center py-16 text-slate-500 text-xs space-y-3 flex flex-col items-center bg-white/70 rounded-2xl border border-slate-200/80">
           <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-            <span className="material-symbols-outlined text-[28px]">search_off</span>
+            <SearchX className="w-7 h-7" />
           </div>
           <p className="text-slate-900 font-bold text-base">No matching study notes found</p>
           <p className="text-slate-500 max-w-md">
@@ -919,9 +928,9 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
             >
               <StickedTape isEven={true} />
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 group-hover:bg-blue-100 text-blue-700 flex items-center justify-center mb-1 transition-transform duration-200 group-hover:scale-110 border border-blue-200/80">
-                <span className="material-symbols-outlined text-[18px] sm:text-[20px] leading-none">note_add</span>
+                <FilePlus className="w-4 h-4 sm:w-5 sm:h-5 text-blue-700" />
               </div>
-              <p className="font-hand font-bold text-slate-950 text-[16px] min-[400px]:text-[17px] sm:text-[18px] min-[1025px]:text-[22px] xl:text-[24px] leading-tight mb-0.5 group-hover:text-blue-700 transition-colors">
+              <p className="font-hand font-bold text-slate-950 text-[15px] min-[400px]:text-[15.5px] sm:text-[16px] min-[1025px]:text-[17.5px] xl:text-[18.5px] leading-tight mb-0.5 group-hover:text-blue-700 transition-colors">
                 Pin New Note
               </p>
               <p className="text-[8.5px] sm:text-[9.5px] text-slate-600 font-medium max-w-[120px] sm:max-w-[130px] leading-tight">
@@ -1046,7 +1055,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                       className="w-5.5 h-5.5 text-slate-900 hover:text-slate-950 transition-colors rounded-md hover:bg-black/10 cursor-pointer relative inline-flex items-center justify-center -mr-0.5 p-0.5"
                       aria-label="More note options"
                     >
-                      <span className="material-symbols-outlined text-[16px] leading-none">more_vert</span>
+                      <MoreVertical className="w-4 h-4 text-slate-800" />
                     </button>
                   </div>
 
@@ -1069,7 +1078,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                         }}
                         className="w-full text-left px-2.5 py-2 sm:py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[16px] text-blue-600">open_in_new</span>
+                        <ExternalLink className="w-4 h-4 text-blue-600 shrink-0" />
                         <span>{file.is_passwordless ? 'Open Note Directly' : 'Unlock & Open Note'}</span>
                       </button>
 
@@ -1082,7 +1091,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                           }}
                           className="w-full text-left px-2.5 py-2 sm:py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[16px] text-blue-600">content_copy</span>
+                          <Copy className="w-4 h-4 text-blue-600 shrink-0" />
                           <span>{copiedId === file.id ? 'Copied!' : 'Copy Link URL'}</span>
                         </button>
                       ) : (
@@ -1099,7 +1108,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                           }}
                           className="w-full text-left px-2.5 py-2 sm:py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[16px] text-blue-600">download</span>
+                          <Download className="w-4 h-4 text-blue-600 shrink-0" />
                           <span>Download File</span>
                         </button>
                       )}
@@ -1114,7 +1123,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                           }}
                           className="w-full text-left px-2.5 py-2 sm:py-1.5 font-semibold text-slate-900 hover:bg-blue-50 hover:text-blue-700 rounded-lg flex items-center gap-2 cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[16px] text-blue-600">info</span>
+                          <Info className="w-4 h-4 text-blue-600 shrink-0" />
                           <span>Technical Specs</span>
                         </button>
                       )}
@@ -1129,7 +1138,7 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
                         }}
                         className="w-full text-left px-2.5 py-1.5 font-semibold text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                        <Trash2 className="w-4 h-4 text-rose-600 shrink-0" />
                         <span>{isAdmin ? 'Purge Record' : 'Delete Note'}</span>
                       </button>
                     </div>

@@ -180,7 +180,7 @@ export interface ThemeCornersConfig {
 }
 
 export interface ThemeAmbientConfig {
-  type: 'snow' | 'particles' | 'confetti' | 'stars' | 'none';
+  type?: 'snow' | 'particles' | 'confetti' | 'stars' | 'none';
   particleColor?: string;
   particleCount?: number;
   speed?: number;

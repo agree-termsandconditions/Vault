@@ -694,7 +694,7 @@ export function getNoteTitleFontInfo(title: string, tags?: string[]): NoteTitleF
       fontFamily: "'Kalam', 'Kamal', cursive, sans-serif",
       className: 'font-title-hindi font-bold',
       language: 'hindi',
-      fontSizeClass: 'text-[16.5px] sm:text-[17.5px] min-[1025px]:text-[19px] xl:text-[21px]',
+      fontSizeClass: 'text-[13.5px] sm:text-[14.5px] min-[1025px]:text-[15.5px] xl:text-[16.5px]',
     };
   }
 
@@ -709,15 +709,15 @@ export function getNoteTitleFontInfo(title: string, tags?: string[]): NoteTitleF
       fontFamily: "'Noto Sans', 'Noto Sans Kannada', 'Noto Sans Tamil', 'Noto Sans Telugu', sans-serif",
       className: 'font-title-other font-bold',
       language: 'other',
-      fontSizeClass: 'text-[14px] sm:text-[14.5px] min-[1025px]:text-[15px] xl:text-[16px]',
+      fontSizeClass: 'text-[12px] sm:text-[12.5px] min-[1025px]:text-[13px] xl:text-[13.5px]',
     };
   }
 
-  // 3. English / Latin script: Caveat (significantly enlarged for mobile and large screens for bold, prominent handwriting appearance)
+  // 3. English / Latin script: Caveat (balanced handwriting title size)
   return {
     fontFamily: "'Caveat', cursive, sans-serif",
     className: 'font-title-english font-bold',
     language: 'english',
-    fontSizeClass: 'text-[17px] min-[400px]:text-[18px] sm:text-[19px] min-[1025px]:text-[23px] xl:text-[25px]',
+    fontSizeClass: 'text-[14px] min-[400px]:text-[15px] sm:text-[16px] min-[1025px]:text-[17.5px] xl:text-[18.5px]',
   };
 }
